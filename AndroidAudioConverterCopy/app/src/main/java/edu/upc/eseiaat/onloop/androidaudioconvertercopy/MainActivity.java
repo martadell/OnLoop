@@ -4,25 +4,15 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
 import cafe.adriel.androidaudioconverter.AndroidAudioConverter;
 import cafe.adriel.androidaudioconverter.callback.IConvertCallback;
@@ -33,9 +23,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView songname;
     private int READ_REQUEST_CODE = 0;
     private File file;
-    private MediaPlayer mediaPlayer;
-    private Button play_btn;
-    private int pause;
     private Uri uri;
 
 
@@ -44,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        play_btn = findViewById(R.id.btn_play);
         songname = findViewById(R.id.txt_songname);
 
         if (getSupportActionBar() != null) {
@@ -62,8 +48,6 @@ public class MainActivity extends AppCompatActivity {
          *  Supported formats: {@link AndroidAudioConverter.AudioFormat}
          */
 
-        File finalfile = file.getAbsoluteFile();
-
         IConvertCallback callback = new IConvertCallback() {
             @Override
             public void onSuccess(File convertedFile) {
@@ -74,14 +58,15 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "ERROR: " + error.getMessage(), Toast.LENGTH_LONG).show();
             }
         };
+
         Toast.makeText(this, "Converting audio file...", Toast.LENGTH_SHORT).show();
 
-        if (finalfile.getName().contains(".mp3")) {
+        if (file.getName().contains(".mp3")) {
 
             Log.i("marta", "és mp3");
 
             AndroidAudioConverter.with(this)
-                    .setFile(finalfile)
+                    .setFile(file)
                     .setFormat(AudioFormat.WAV)
                     .setCallback(callback)
                     .convert();
@@ -89,12 +74,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         else {
-            if (finalfile.getName().contains(".wav")) {
+            if (file.getName().contains(".wav")) {
 
                 Log.i("marta", "és wav");
 
                 AndroidAudioConverter.with(this)
-                        .setFile(finalfile)
+                        .setFile(file)
                         .setFormat(AudioFormat.MP3)
                         .setCallback(callback)
                         .convert();
@@ -105,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    //TODO: DIU QUE EL FITXER NO EXISTEIX AL CONVERTIR-LO ??? ERROR
 
     public void clic_song(View view) {
         performFileSearch();
@@ -154,34 +141,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-    public void clic_play(View view) throws IOException {
-
-        if (mediaPlayer == null) {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setDataSource(getApplicationContext(), uri);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            play_btn.setText("Pause");
-        }
-
-        else {
-
-            if (!mediaPlayer.isPlaying()) {
-                mediaPlayer.seekTo(pause);
-                mediaPlayer.start();
-                play_btn.setText("Pause");
-
-            }
-
-            else {
-                mediaPlayer.pause();
-                pause = mediaPlayer.getCurrentPosition();
-                play_btn.setText("Play");
-            }
-        }
-    }
 }
-
-

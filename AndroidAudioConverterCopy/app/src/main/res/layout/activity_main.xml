@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="edu.upc.eseiaat.onloop.androidaudioconvertercopy">
+    tools:context="edu.upc.eseiaat.onloop.androidaudioconvertercopy.MainActivity">
 
     <Button
         style="@style/Widget.AppCompat.Button.Borderless"
@@ -44,15 +44,8 @@
         android:layout_marginBottom="25dp"
         android:layout_marginEnd="35dp"
         android:onClick="clic_song"
-        android:text="Get song" />
-
-    <Button
-        android:id="@+id/btn_play"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/txt_songname"
-        android:layout_centerHorizontal="true"
-        android:onClick="clic_play"
-        android:text="PLAY" />
+        android:text="Get song"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="35dp" />
 
 </RelativeLayout>
