@@ -24,4 +24,8 @@ public class Song {
     public String getPath(){
         return path;
     }
+
+    public String toString() {
+        return "title: " + getTitle() + " artist: " + getArtist()+"\n";
+    }
 }

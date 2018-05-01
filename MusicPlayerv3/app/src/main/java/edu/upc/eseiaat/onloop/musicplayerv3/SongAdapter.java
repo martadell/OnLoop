@@ -5,35 +5,35 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class SongAdapter extends BaseAdapter {
+public class SongAdapter extends BaseAdapter implements Filterable {
 
-    private ArrayList<Song> songs;
     private LayoutInflater inflater;
+    private NewFilter filter;
+    private ArrayList<Song> original_songs, filtered_songs;
 
     public SongAdapter(Context c, ArrayList<Song> songs){
-        this.songs=songs;
+        original_songs=songs;
+        filtered_songs = songs;
         inflater=LayoutInflater.from(c);
     }
 
     @Override
     public int getCount() {
-        return songs.size();
+        return original_songs.size();
     }
 
-    @Override
-    public Object getItem(int arg0) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public Song getItem(int i) { return original_songs.get(i); }
 
     @Override
-    public long getItemId(int arg0) {
-        // TODO Auto-generated method stub
+    public long getItemId(int i) {
         return 0;
     }
 
@@ -46,7 +46,7 @@ public class SongAdapter extends BaseAdapter {
         TextView songView = (TextView)songLay.findViewById(R.id.song_title);
         TextView artistView = (TextView)songLay.findViewById(R.id.song_artist);
         //get song using position
-        Song currSong = songs.get(position);
+        Song currSong = getItem(position);
         //get title and artist strings
         songView.setText(currSong.getTitle());
         artistView.setText(currSong.getArtist());
@@ -55,4 +55,52 @@ public class SongAdapter extends BaseAdapter {
         return songLay;
     }
 
+    @Override
+    public Filter getFilter() {
+        if (filter == null){
+            filter = new NewFilter();
+        }
+        return filter;
+    }
+
+    private class NewFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+
+            FilterResults results = new FilterResults();
+
+            if (constraint != null && constraint.length() > 0) {
+
+                constraint = constraint.toString().toUpperCase();
+
+                List<Song> filtered = new ArrayList<Song>();
+
+                for (int i=0; i<filtered_songs.size();i++) {
+                    if (filtered_songs.get(i).getArtist().toUpperCase().contains(constraint) ||
+                            filtered_songs.get(i).getTitle().toUpperCase().contains(constraint)) {
+                        filtered.add(filtered_songs.get(i));
+                    }
+                }
+
+                results.count = filtered.size();
+                results.values = filtered;
+
+            } else {
+                results.count = filtered_songs.size();
+                results.values = filtered_songs;
+            }
+            return results;
+
+        }
+
+        public ArrayList<Song> getCurrentList() {
+            return filtered_songs;
+        }
+
+        @Override
+        protected void publishResults(CharSequence constraint, FilterResults results) {
+            original_songs = (ArrayList<Song>) results.values;
+            notifyDataSetChanged();
+        }
+    }
 }
