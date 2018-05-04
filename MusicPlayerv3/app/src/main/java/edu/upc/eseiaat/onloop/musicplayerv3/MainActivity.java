@@ -9,14 +9,19 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.florescu.android.rangeseekbar.RangeSeekBar;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     private MusicService musicSrv;
     private Intent playIntent;
     private boolean musicBound=false, pause=true;
+    private SeekBar seekBar;
+    private RangeSeekBar<Double> rangeSeekBar;
+    private Handler handler;
+    private Runnable runnable;
 
     //Iniciar el servei a onstart (perquè s'obri ja quan s'obre també l'app)
     @Override
@@ -44,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
             stopService(playIntent);
             unbindService(musicConnection);
             musicSrv=null;
+
+            handler.removeCallbacks(runnable);
         }
         super.onDestroy();
     }
@@ -71,6 +82,12 @@ public class MainActivity extends AppCompatActivity {
         btn_play.setVisibility(View.GONE);
         btn_stop.setVisibility(View.GONE);
         txt_song.setText("Nothing! Choose a song to listen");
+
+        handler = new Handler();
+
+        seekBar = findViewById(R.id.seekBar);
+        rangeSeekBar = (RangeSeekBar<Double>) findViewById(R.id.rangeseekbar);
+
     }
 
     //Connexió al servei
@@ -109,8 +126,13 @@ public class MainActivity extends AppCompatActivity {
                     //i reproduirla
                     musicSrv.playSong();
                 } else {
+                    if (seekBar.getProgress() != musicSrv.getCurrentPosition()) {
+                        musicSrv.replaySongFrom(seekBar.getProgress());
+                    }
 
-                    musicSrv.replaySong();
+                    else {
+                        musicSrv.replaySongFrom(musicSrv.getCurrentPosition());
+                    }
                 }
 
                 btn_play.setText("Pause");
@@ -159,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == AppCompatActivity.RESULT_OK) {
                     String songname = data.getStringExtra("songname");
                     String songpath = data.getStringExtra("songpath");
+                    String songduration = data.getStringExtra("songduration");
 
                     Log.i("marta", "song name: " + songname);
                     txt_song.setText(songname);
@@ -166,8 +189,45 @@ public class MainActivity extends AppCompatActivity {
 
                     btn_play.setVisibility(View.VISIBLE);
                     btn_stop.setVisibility(View.VISIBLE);
+
+                    seekBar.setProgress(0);
+                    seekBar.setMax(Integer.valueOf(songduration));
+
+                    playCycle();
+
+                    seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+                        @Override
+                        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+                            if (b) {
+                                musicSrv.seekTo(i);
+                            }
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar) {
+
+                        }
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar) {
+                        }
+                    });
                 }
         }
+    }
+
+    private final void playCycle() {
+
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                seekBar.setProgress(musicSrv.getCurrentPosition());
+                playCycle();
+            }
+        };
+        handler.postDelayed(runnable, 1000);
     }
 
 }

@@ -15,7 +15,6 @@ public class MusicService extends Service implements
         MediaPlayer.OnCompletionListener {
 
     private MediaPlayer player;
-    private int songPos;
     private Uri urisong;
     private final IBinder musicBind = new MusicBinder();
 
@@ -23,8 +22,6 @@ public class MusicService extends Service implements
     public void onCreate(){
         //create the service
         super.onCreate();
-        //initialize position
-        songPos=0;
         //create player
         player = new MediaPlayer();
 
@@ -70,20 +67,23 @@ public class MusicService extends Service implements
 
     public void pauseSong() {
         player.pause();
-        songPos = player.getCurrentPosition();
     }
 
-    public void replaySong() {
-        player.seekTo(songPos);
+    public void replaySongFrom(int pos) {
+        player.seekTo(pos);
         player.start();
-    }
-
-    public void stop() {
-        player.stop();
     }
 
     public void resetPlayer() {
         player.reset();
+    }
+
+    public void seekTo(int i) {
+        player.seekTo(i);
+    }
+
+    public int getCurrentPosition() {
+        return player.getCurrentPosition();
     }
 
     public class MusicBinder extends Binder {

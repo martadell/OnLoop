@@ -25,7 +25,7 @@ public class MusicListActivity extends AppCompatActivity {
     private ArrayList<Song> songList;
     private ArrayList<Song> newSongList;
     private ListView songView;
-    private String songname, songpath, artist;
+    private String songname, songpath, artist, songduration;
     private SearchView searchView;
     private MenuItem searchitem;
     private SongAdapter adapter;
@@ -117,12 +117,14 @@ public class MusicListActivity extends AppCompatActivity {
                     (android.provider.MediaStore.Audio.Media.ARTIST);
             int pathColumn = musicCursor.getColumnIndex
                     (MediaStore.Audio.Media.DATA);
+            int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
             //add songs to list
             do {
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
                 String thisSongPath = musicCursor.getString(pathColumn);
-                songList.add(new Song(thisTitle, thisArtist, thisSongPath));
+                String thisSongDuration = musicCursor.getString(durationColumn);
+                songList.add(new Song(thisTitle, thisArtist, thisSongPath, thisSongDuration));
             }
             while (musicCursor.moveToNext());
         }
@@ -144,12 +146,14 @@ public class MusicListActivity extends AppCompatActivity {
             songname = newSongList.get(Integer.parseInt(view.getTag().toString())).getTitle();
             songpath = newSongList.get(Integer.parseInt(view.getTag().toString())).getPath();
             artist = newSongList.get(Integer.parseInt(view.getTag().toString())).getArtist();
+            songduration = newSongList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
         else {
             songname = songList.get(Integer.parseInt(view.getTag().toString())).getTitle();
             songpath = songList.get(Integer.parseInt(view.getTag().toString())).getPath();
             artist = songList.get(Integer.parseInt(view.getTag().toString())).getArtist();
+            songduration = songList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
         Log.i("marta", songname);
@@ -175,6 +179,7 @@ public class MusicListActivity extends AppCompatActivity {
         Intent data = new Intent();
         data.putExtra("songname", songname);
         data.putExtra("songpath", songpath);
+        data.putExtra("songduration", songduration);
         setResult(RESULT_OK, data);
         finish();
     }
