@@ -1,6 +1,7 @@
 package edu.upc.eseiaat.onloop.musicplayerv3;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class SongAdapter extends BaseAdapter implements Filterable {
@@ -43,8 +46,8 @@ public class SongAdapter extends BaseAdapter implements Filterable {
         RelativeLayout songLay = (RelativeLayout)inflater.inflate
                 (R.layout.song, parent, false);
         //get title and artist views
-        TextView songView = (TextView)songLay.findViewById(R.id.song_title);
-        TextView artistView = (TextView)songLay.findViewById(R.id.song_artist);
+        TextView songView = songLay.findViewById(R.id.song_title);
+        TextView artistView = songLay.findViewById(R.id.song_artist);
         //get song using position
         Song currSong = getItem(position);
         //get title and artist strings
@@ -73,7 +76,7 @@ public class SongAdapter extends BaseAdapter implements Filterable {
 
                 constraint = constraint.toString().toUpperCase();
 
-                List<Song> filtered = new ArrayList<Song>();
+                List<Song> filtered = new ArrayList();
 
                 for (int i=0; i<filtered_songs.size();i++) {
                     if (filtered_songs.get(i).getArtist().toUpperCase().contains(constraint) ||
@@ -81,6 +84,18 @@ public class SongAdapter extends BaseAdapter implements Filterable {
                         filtered.add(filtered_songs.get(i));
                     }
                 }
+
+
+                if (filtered.size() > 0) {
+                    Collections.sort(filtered, new Comparator<Song>() {
+                        @Override
+                        public int compare(final Song object1, final Song object2) {
+                            return object1.getTitle().compareTo(object2.getTitle());
+                        }
+                    });
+                }
+
+                Log.i("marta", "mida de la llista d'elements: " +Integer.toString(filtered.size()));
 
                 results.count = filtered.size();
                 results.values = filtered;
@@ -91,10 +106,6 @@ public class SongAdapter extends BaseAdapter implements Filterable {
             }
             return results;
 
-        }
-
-        public ArrayList<Song> getCurrentList() {
-            return filtered_songs;
         }
 
         @Override

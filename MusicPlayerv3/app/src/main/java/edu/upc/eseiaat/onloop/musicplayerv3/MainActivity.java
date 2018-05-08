@@ -1,7 +1,6 @@
 package edu.upc.eseiaat.onloop.musicplayerv3;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +15,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +23,7 @@ import org.florescu.android.rangeseekbar.RangeSeekBar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button btn_play, btn_explore, btn_stop;
+    private Button btn_play, btn_explore, btn_stop, btn_start, btn_end, btn_restore;
     private TextView txt_song;
     private Uri urisong;
     private MusicService musicSrv;
@@ -35,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private RangeSeekBar<Double> rangeSeekBar;
     private Handler handler;
     private Runnable runnable;
+    private Integer duration =0, start, end;
 
     //Iniciar el servei a onstart (perquè s'obri ja quan s'obre també l'app)
     @Override
@@ -76,17 +75,22 @@ public class MainActivity extends AppCompatActivity {
         //Inicialitzar button i textview
         btn_play = findViewById(R.id.btn_play);
         btn_explore = findViewById(R.id.btn_explore);
-        btn_stop = findViewById(R.id.btn_stop);
+        btn_stop = findViewById(R.id.btn_stop_loop);
         txt_song = findViewById(R.id.txt_song);
+        btn_start = findViewById(R.id.btn_start);
+        btn_end = findViewById(R.id.btn_end);
+        btn_restore = findViewById(R.id.btn_restore);
 
         btn_play.setVisibility(View.GONE);
         btn_stop.setVisibility(View.GONE);
+        btn_start.setVisibility(View.GONE);
+        btn_end.setVisibility(View.GONE);
+        btn_restore.setVisibility(View.GONE);
         txt_song.setText("Nothing! Choose a song to listen");
 
         handler = new Handler();
 
         seekBar = findViewById(R.id.seekBar);
-        rangeSeekBar = (RangeSeekBar<Double>) findViewById(R.id.rangeseekbar);
 
     }
 
@@ -117,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
         else {
 
-            if (pause == true) { //si no s'està reproduïnt res
+            if (pause) { //si no s'està reproduïnt res
 
                 if (musicSrv.firstPlay()) { //si és el primer cop que es reprodueix
 
@@ -151,13 +155,18 @@ public class MainActivity extends AppCompatActivity {
 
     public void click_stop(View view) {
 
-        btn_play.setVisibility(view.GONE);
-        btn_stop.setVisibility(view.GONE);
+        btn_play.setVisibility(View.GONE);
+        btn_stop.setVisibility(View.GONE);
         btn_explore.setVisibility(View.VISIBLE);
+        btn_start.setVisibility(View.GONE);
+        btn_end.setVisibility(View.GONE);
+        btn_restore.setVisibility(View.GONE);
 
         urisong = null;
         txt_song.setText("");
         musicSrv.resetPlayer();
+
+        musicSrv.isLoop(false);
 
         txt_song.setText("Nothing! Choose a song to listen");
     }
@@ -186,12 +195,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("marta", "song name: " + songname);
                     txt_song.setText(songname);
                     urisong = Uri.parse(songpath);
+                    duration = Integer.valueOf(songduration);
 
                     btn_play.setVisibility(View.VISIBLE);
                     btn_stop.setVisibility(View.VISIBLE);
+                    btn_start.setVisibility(View.VISIBLE);
+                    btn_end.setVisibility(View.VISIBLE);
+                    btn_restore.setVisibility(View.VISIBLE);
 
                     seekBar.setProgress(0);
-                    seekBar.setMax(Integer.valueOf(songduration));
+                    seekBar.setMax(duration);
 
                     playCycle();
 
@@ -218,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private final void playCycle() {
+    private void playCycle() {
 
         runnable = new Runnable() {
             @Override
@@ -230,4 +243,24 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(runnable, 1000);
     }
 
+    public void click_start(View view) {
+        start = musicSrv.getCurrentPosition();
+        musicSrv.setStartPoint(start);
+    }
+
+    public void click_end(View view) {
+        end = musicSrv.getCurrentPosition();
+        musicSrv.setEndPoint(end);
+        musicSrv.isLoop(true);
+        musicSrv.replaySongFrom(start);
+    }
+
+    public void click_restore(View view) {
+        start = 0;
+        end = duration;
+        musicSrv.stopLoop();
+        musicSrv.isLoop(false);
+    }
+
+    //TODO: ARREGLAR PROBLEMA AMB FORMAT MPEG (CONVERSIÓ DE FORMAT??)
 }

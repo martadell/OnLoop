@@ -35,8 +35,8 @@ public class MusicListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_music);
 
-        songView = (ListView) findViewById(R.id.song_list);
-        songList = new ArrayList<Song>();
+        songView = findViewById(R.id.song_list);
+        songList = new ArrayList();
 
         //Get the songs
         getSongList();
@@ -133,12 +133,26 @@ public class MusicListActivity extends AppCompatActivity {
         private void updateSongList (String newText) {
             newSongList = new ArrayList<>();
 
-            for (int i=0; i < songList.size(); i++) {
-                if (songList.get(i).getTitle().contains(newText) || songList.get(i).getArtist().contains(newText)) {
+            CharSequence constraint = newText.toUpperCase();
+
+            for (int i=0; i<songList.size();i++) {
+                if (songList.get(i).getArtist().toUpperCase().contains(constraint) ||
+                        songList.get(i).getTitle().toUpperCase().contains(constraint)) {
                     newSongList.add(songList.get(i));
                 }
             }
-            Log.i("marta", "Hola") ;
+
+            Log.i("marta", "llista de cançons" + newSongList.toString());
+            Log.i("marta", "mida de la llista de cançons: " +Integer.toString(newSongList.size()));
+
+            if (newSongList.size() > 0) {
+                Collections.sort(newSongList, new Comparator<Song>() {
+                    @Override
+                    public int compare(final Song object1, final Song object2) {
+                        return object1.getTitle().compareTo(object2.getTitle());
+                    }
+                });
+            }
         }
 
     public void click_pick(View view){
