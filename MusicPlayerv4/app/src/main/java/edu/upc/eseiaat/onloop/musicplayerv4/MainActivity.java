@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         play_btn = findViewById(R.id.btn_play);
         speedOptions = findViewById(R.id.speedOptions);
 
+        //Spinner
         arrayAdapter =  new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, speeds());
         speedOptions.setAdapter(arrayAdapter);
         setSpeedOptions();
@@ -49,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler();
         seekBar = findViewById(R.id.seekBar);
-
     }
 
     private void setSpeedOptions() {
@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     float selectedSpeed = Float.parseFloat(
                             speedOptions.getItemAtPosition(i).toString());
 
+                    //canviar la velocitat a la opció seleccionada
                     changeplayerSpeed(selectedSpeed);
                 }
             }
@@ -80,6 +81,10 @@ public class MainActivity extends AppCompatActivity {
                 player.pause();
                 //TODO: No es para???
             }
+        }
+
+        else {
+            //TODO: BUSCAR ALTERNATIVA
         }
     }
 
