@@ -28,17 +28,12 @@ public class MusicService extends Service implements
     private Handler handler;
 
     @Override
-    public void onDestroy() {
-        handler.removeCallbacks(runnable);
-    }
-
-    @Override
     public void onCreate(){
-        //create the service
+        //crear el servei
         super.onCreate();
-        //create player
+        //crear el reproductor
         player = new MediaPlayer();
-
+        //crear el handler (per reproduir el bucle)
         handler = new Handler();
 
         initMusicPlayer();
@@ -120,6 +115,7 @@ public class MusicService extends Service implements
         return musicBind;
     }
 
+    //al desconectar el servei s'allibera el reproductor
     @Override
     public boolean onUnbind(Intent intent){
         player.stop();
@@ -142,7 +138,7 @@ public class MusicService extends Service implements
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        //start playback
+        //iniciar playback
         if (urisong != null) {
             if (loop) {
                 mp.seekTo(start);
@@ -175,6 +171,7 @@ public class MusicService extends Service implements
         }
     }
 
+    //reproduir bucle
     private void playLoop() {
 
         runnable = new Runnable() {

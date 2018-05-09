@@ -38,21 +38,23 @@ public class MusicListActivity extends AppCompatActivity {
         songView = findViewById(R.id.song_list);
         songList = new ArrayList();
 
-        //Get the songs
+        //obtenir les cançons
         getSongList();
 
-        //Sort the songs alphabetically
+        //ordenar-les alfabèticament
         Collections.sort(songList, new Comparator<Song>() {
             public int compare(Song a, Song b) {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
 
-        //Create the adapter and initialize it
+        //crear l'adaptador i inicialitzar-lo
         adapter = new SongAdapter(this, songList);
         songView.setAdapter(adapter);
     }
 
+
+    //menú (lupa)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -101,12 +103,12 @@ public class MusicListActivity extends AppCompatActivity {
     }
 
     public void getSongList() {
-        //retrieve song info
-        //1. Content resolver instance
+        //obtenir la informació de la cançó
+        //1. instpancia de content resolver
         ContentResolver musicResolver = getContentResolver();
-        //2. Retrieve the URI for external music files
+        //2. Obtenir l'URI els arxius de música del telèfon
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        //Create a cursor to query the music files
+        //Crear un cursor per consultar els arxius
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
@@ -130,6 +132,7 @@ public class MusicListActivity extends AppCompatActivity {
         }
     }
 
+    //actualitzar la llista de cançons (al aplicar el filtre)
         private void updateSongList (String newText) {
             newSongList = new ArrayList<>();
 
@@ -145,6 +148,7 @@ public class MusicListActivity extends AppCompatActivity {
             Log.i("marta", "llista de cançons" + newSongList.toString());
             Log.i("marta", "mida de la llista de cançons: " +Integer.toString(newSongList.size()));
 
+            //ordenar alfabèticament
             if (newSongList.size() > 0) {
                 Collections.sort(newSongList, new Comparator<Song>() {
                     @Override
@@ -155,8 +159,9 @@ public class MusicListActivity extends AppCompatActivity {
             }
         }
 
+        //al triar un item
     public void click_pick(View view){
-        if (newSongList != null && newSongList.size() < songList.size()) {
+        if (newSongList != null && newSongList.size() < songList.size()) { //si hi ha el filtre activat
             songname = newSongList.get(Integer.parseInt(view.getTag().toString())).getTitle();
             songpath = newSongList.get(Integer.parseInt(view.getTag().toString())).getPath();
             artist = newSongList.get(Integer.parseInt(view.getTag().toString())).getArtist();
@@ -189,6 +194,7 @@ public class MusicListActivity extends AppCompatActivity {
 
     }
 
+    //enviar cançó a la mainactivity
     public void selectSong() {
         Intent data = new Intent();
         data.putExtra("songname", songname);

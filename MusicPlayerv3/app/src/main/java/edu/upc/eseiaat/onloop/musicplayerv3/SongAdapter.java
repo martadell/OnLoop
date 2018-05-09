@@ -58,6 +58,7 @@ public class SongAdapter extends BaseAdapter implements Filterable {
         return songLay;
     }
 
+    //Filtratge
     @Override
     public Filter getFilter() {
         if (filter == null){

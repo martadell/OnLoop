@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private Intent playIntent;
     private boolean musicBound=false, pause=true;
     private SeekBar seekBar;
-    private RangeSeekBar<Double> rangeSeekBar;
+//    private RangeSeekBar<Double> rangeSeekBar;
     private Handler handler;
     private Runnable runnable;
     private Integer duration =0, start, end;
@@ -130,7 +130,8 @@ public class MainActivity extends AppCompatActivity {
                     //i reproduirla
                     musicSrv.playSong();
                 } else {
-                    if (seekBar.getProgress() != musicSrv.getCurrentPosition()) {
+                    if (seekBar.getProgress() != musicSrv.getCurrentPosition()) { //actualitzar cançó
+                                                                // si es canvia la posició a la seekbar
                         musicSrv.replaySongFrom(seekBar.getProgress());
                     }
 
@@ -188,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
             case 0:
                 // (IV)
                 if (resultCode == AppCompatActivity.RESULT_OK) {
+                    //obtenir dades
                     String songname = data.getStringExtra("songname");
                     String songpath = data.getStringExtra("songpath");
                     String songduration = data.getStringExtra("songduration");
@@ -203,9 +205,11 @@ public class MainActivity extends AppCompatActivity {
                     btn_end.setVisibility(View.VISIBLE);
                     btn_restore.setVisibility(View.VISIBLE);
 
+                    //inicialitzar els valors i colocar la seekbar a 0
                     seekBar.setProgress(0);
                     seekBar.setMax(duration);
 
+                    //actualitzar seekbar
                     playCycle();
 
                     seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -231,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //actualitzar  seekbar
     private void playCycle() {
 
         runnable = new Runnable() {
@@ -243,11 +248,13 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(runnable, 1000);
     }
 
+    //inici del bucle
     public void click_start(View view) {
         start = musicSrv.getCurrentPosition();
         musicSrv.setStartPoint(start);
     }
 
+    //fi del bucle
     public void click_end(View view) {
         end = musicSrv.getCurrentPosition();
         musicSrv.setEndPoint(end);
@@ -255,6 +262,7 @@ public class MainActivity extends AppCompatActivity {
         musicSrv.replaySongFrom(start);
     }
 
+    //eliminar punts del bucle
     public void click_restore(View view) {
         start = 0;
         end = duration;
