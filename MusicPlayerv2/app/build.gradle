@@ -4,7 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "edu.upc.eseiaat.onloop.musicplayerv2"
-        minSdkVersion 15
+        minSdkVersion 22
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
