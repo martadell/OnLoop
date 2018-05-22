@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.support.v7.widget.SearchView;
 
@@ -25,7 +26,7 @@ public class MusicListActivity extends AppCompatActivity {
     private ArrayList<Song> songList;
     private ArrayList<Song> newSongList;
     private ListView songView;
-    private String songname, songpath, artist, songduration;
+    private String songname, songpath, songartist, songduration;
     private SearchView searchView;
     private MenuItem searchitem;
     private SongAdapter adapter;
@@ -52,7 +53,6 @@ public class MusicListActivity extends AppCompatActivity {
         adapter = new SongAdapter(this, songList);
         songView.setAdapter(adapter);
     }
-
 
     //menú (lupa)
     @Override
@@ -103,31 +103,36 @@ public class MusicListActivity extends AppCompatActivity {
 
     public void getSongList() {
         //obtenir la informació de la cançó
-        //1. instpancia de content resolver
+        //1. instancia de content resolver
         ContentResolver musicResolver = getContentResolver();
         //2. Obtenir l'URI els arxius de música del telèfon
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Uri albumUri = android.provider.MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
         //Crear un cursor per consultar els arxius
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+        Cursor albumCursor = musicResolver.query(albumUri, null, null, null, null);
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
-            //get columns
-            int titleColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media.TITLE);
-            int artistColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media.ARTIST);
-            int pathColumn = musicCursor.getColumnIndex
-                    (MediaStore.Audio.Media.DATA);
-            int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            //add songs to list
-            do {
-                String thisTitle = musicCursor.getString(titleColumn);
-                String thisArtist = musicCursor.getString(artistColumn);
-                String thisSongPath = musicCursor.getString(pathColumn);
-                String thisSongDuration = musicCursor.getString(durationColumn);
-                songList.add(new Song(thisTitle, thisArtist, thisSongPath, thisSongDuration));
+
+            if (albumCursor != null && musicCursor.moveToFirst()) {
+                //get columns
+                int titleColumn = musicCursor.getColumnIndex
+                        (android.provider.MediaStore.Audio.Media.TITLE);
+                int artistColumn = musicCursor.getColumnIndex
+                        (android.provider.MediaStore.Audio.Media.ARTIST);
+                int pathColumn = musicCursor.getColumnIndex
+                        (MediaStore.Audio.Media.DATA);
+                int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+                //add songs to list
+                do {
+                    String thisTitle = musicCursor.getString(titleColumn);
+                    String thisArtist = musicCursor.getString(artistColumn);
+                    String thisSongPath = musicCursor.getString(pathColumn);
+                    String thisSongDuration = musicCursor.getString(durationColumn);
+                    songList.add(new Song(thisTitle, thisArtist, thisSongPath, thisSongDuration));
+                }
+                while (musicCursor.moveToNext());
             }
-            while (musicCursor.moveToNext());
         }
     }
 
@@ -162,15 +167,15 @@ public class MusicListActivity extends AppCompatActivity {
     public void click_pick(View view){
         if (newSongList != null && newSongList.size() < songList.size()) { //si hi ha el filtre activat
             songname = newSongList.get(Integer.parseInt(view.getTag().toString())).getTitle();
+            songartist = newSongList.get(Integer.parseInt(view.getTag().toString())).getArtist();
             songpath = newSongList.get(Integer.parseInt(view.getTag().toString())).getPath();
-            artist = newSongList.get(Integer.parseInt(view.getTag().toString())).getArtist();
             songduration = newSongList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
         else {
             songname = songList.get(Integer.parseInt(view.getTag().toString())).getTitle();
+            songartist = songList.get(Integer.parseInt(view.getTag().toString())).getArtist();
             songpath = songList.get(Integer.parseInt(view.getTag().toString())).getPath();
-            artist = songList.get(Integer.parseInt(view.getTag().toString())).getArtist();
             songduration = songList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
@@ -185,6 +190,7 @@ public class MusicListActivity extends AppCompatActivity {
     public void selectSong() {
         Intent data = new Intent();
         data.putExtra("songname", songname);
+        data.putExtra("songartist", songartist);
         data.putExtra("songpath", songpath);
         data.putExtra("songduration", songduration);
         setResult(RESULT_OK, data);

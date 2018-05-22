@@ -88,6 +88,7 @@ public class MusicService extends Service implements
 
     public void stopPlayer() {
         player.stop();
+        player.reset();
     }
 
     public void seekTo(int i) {
@@ -150,6 +151,10 @@ public class MusicService extends Service implements
 
     public void isLoop(boolean loop) {
         this.loop = loop;
+    }
+
+    public boolean getLoop() {
+        return loop;
     }
 
     public void setStartPoint(Integer startPoint) {

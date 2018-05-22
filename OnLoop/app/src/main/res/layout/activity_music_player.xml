@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,9 +11,9 @@
         android:id="@+id/btn_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="162dp"
+        android:layout_marginTop="207dp"
         android:onClick="click_play"
         android:text="Play" />
 
@@ -20,21 +21,19 @@
         android:id="@+id/btn_stop_loop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/btn_play"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="99dp"
         android:onClick="click_stop"
         android:text="Stop" />
 
     <TextView
-        android:id="@+id/txt_playing"
+        android:id="@+id/txt_artist"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/txt_song"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="85dp"
-        android:textSize="18sp"
-        android:text="Now playing" />
+        android:text="Now playing"
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/txt_song"
@@ -42,9 +41,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:textSize="24sp"
+        android:layout_marginTop="50dp"
+        android:text="Song"
         android:textColor="@color/colorPrimaryDark"
-        android:layout_marginTop="132dp" />
+        android:textSize="24sp" />
 
 
     <SeekBar
@@ -52,7 +52,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/txt_song"
+        android:layout_below="@+id/txt_artist"
         android:layout_alignParentLeft="true" />
 
     <Button
@@ -60,32 +60,48 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/seekBar"
-        android:layout_marginStart="21dp"
+        android:layout_alignTop="@+id/btn_end"
         android:onClick="click_start"
         android:text="Start loop"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="21dp" />
+        android:layout_alignParentLeft="true" />
 
     <Button
         android:id="@+id/btn_end"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/seekBar"
-        android:layout_marginEnd="25dp"
+        android:layout_below="@+id/txt_song_timing"
         android:onClick="click_end"
         android:text="Stop loop"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="25dp" />
+        android:layout_alignParentRight="true" />
 
     <Button
         android:id="@+id/btn_restore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/seekBar"
+        android:layout_alignTop="@+id/btn_end"
         android:layout_centerHorizontal="true"
         android:onClick="click_restore"
         android:text="Restore" />
+
+    <TextView
+        android:id="@+id/txt_song_timing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/seekBar"
+        android:paddingLeft="10dp"
+        android:text="00:00"
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:id="@+id/txt_song_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/seekBar"
+        android:paddingLeft="10dp"
+        android:text="00:00"
+        android:layout_alignParentRight="true" />
 
 </RelativeLayout>
