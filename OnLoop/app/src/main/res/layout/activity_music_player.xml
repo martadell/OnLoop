@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="edu.upc.eseiaat.onloop.onloop.MusicPlayerActivity">
+
+
+    <Button
+        android:id="@+id/btn_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="162dp"
+        android:onClick="click_play"
+        android:text="Play" />
+
+    <Button
+        android:id="@+id/btn_stop_loop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="99dp"
+        android:onClick="click_stop"
+        android:text="Stop" />
+
+    <TextView
+        android:id="@+id/txt_playing"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="85dp"
+        android:textSize="18sp"
+        android:text="Now playing" />
+
+    <TextView
+        android:id="@+id/txt_song"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="24sp"
+        android:textColor="@color/colorPrimaryDark"
+        android:layout_marginTop="132dp" />
+
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/txt_song"
+        android:layout_alignParentLeft="true" />
+
+    <Button
+        android:id="@+id/btn_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/seekBar"
+        android:layout_marginStart="21dp"
+        android:onClick="click_start"
+        android:text="Start loop"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="21dp" />
+
+    <Button
+        android:id="@+id/btn_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/seekBar"
+        android:layout_marginEnd="25dp"
+        android:onClick="click_end"
+        android:text="Stop loop"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="25dp" />
+
+    <Button
+        android:id="@+id/btn_restore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/seekBar"
+        android:layout_centerHorizontal="true"
+        android:onClick="click_restore"
+        android:text="Restore" />
+
+</RelativeLayout>
