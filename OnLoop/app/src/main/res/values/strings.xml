@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">OnLoop</string>
+    <string name="app_name" translatable="false">OnLoop</string>
     <string name="explore">Explore song</string>
     <string name="clear">Clear</string>
     <string name="search">Search</string>
-    <string name="nothing_playing">Nothing! Choose a song to listen</string>
-    <string name="pick_song_first">please pick a song first</string>
+    <string name="nothing_playing">Choose a song to listen</string>
     <string name="clear_player">Clear music player</string>
     <string name="clear_player_message">Are you sure you want to reset the music player?</string>
+    <string name="search_item">Search for a song name or artist...</string>
 </resources>

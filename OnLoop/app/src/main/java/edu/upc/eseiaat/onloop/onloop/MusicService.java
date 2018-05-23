@@ -46,6 +46,7 @@ public class MusicService extends Service implements
         player.setOnErrorListener(this);
     }
 
+    //funcions del reproductor
     public void setSong(Uri song){
         urisong=song;
     }
@@ -62,14 +63,6 @@ public class MusicService extends Service implements
         }
 
         preparePlayer();
-    }
-
-    public boolean firstPlay() {
-        if (player.getCurrentPosition() <= 0) {
-            return true;
-        }
-
-        return false;
     }
 
     public void pausePlayer() {
@@ -103,12 +96,12 @@ public class MusicService extends Service implements
         player.reset();
     }
 
+    //service
     public class MusicBinder extends Binder {
         MusicService getService() {
             return MusicService.this;
         }
     }
-
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -139,6 +132,7 @@ public class MusicService extends Service implements
     @Override
     public void onPrepared(MediaPlayer mp) {
         //iniciar playback
+        //si es crea el bucle abans de donar-li al play
         if (urisong != null) {
             if (loop) {
                 mp.seekTo(start);
@@ -147,24 +141,6 @@ public class MusicService extends Service implements
             else {
                 mp.start(); }
         }
-    }
-
-    public void isLoop(boolean loop) {
-        this.loop = loop;
-    }
-
-    public boolean getLoop() {
-        return loop;
-    }
-
-    public void setStartPoint(Integer startPoint) {
-        start = startPoint;
-    }
-
-    public Integer getStartPoint() {return start;}
-
-    public void setEndPoint(Integer endPoint) {
-        end = endPoint;
     }
 
     public void preparePlayer() {
@@ -183,8 +159,8 @@ public class MusicService extends Service implements
         runnable = new Runnable() {
             @Override
             public void run() {
-                if (player.getCurrentPosition() < start || player.getCurrentPosition() > end) {
-                    player.seekTo(start);
+                if (player.getCurrentPosition() < getStartPoint() || player.getCurrentPosition() > getEndPoint()) {
+                    player.seekTo(getStartPoint());
                 }
                 playLoop();
             }
@@ -194,5 +170,31 @@ public class MusicService extends Service implements
 
     public void stopLoop(){
         handler.removeCallbacks(runnable);
+    }
+
+
+    //getters i setters
+    public void isLoop(boolean loop) {
+        this.loop = loop;
+    }
+
+    public boolean getLoop() {
+        return loop;
+    }
+
+    public void setStartPoint(Integer startPoint) {
+        start = startPoint;
+    }
+
+    public Integer getStartPoint() {
+        return start;
+    }
+
+    public void setEndPoint(Integer endPoint) {
+        end = endPoint;
+    }
+
+    public Integer getEndPoint() {
+        return end;
     }
 }

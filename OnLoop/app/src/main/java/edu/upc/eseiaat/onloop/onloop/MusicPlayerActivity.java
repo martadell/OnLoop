@@ -1,6 +1,7 @@
 package edu.upc.eseiaat.onloop.onloop;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PersistableBundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -33,14 +35,13 @@ import java.util.concurrent.TimeUnit;
 
 public class MusicPlayerActivity extends AppCompatActivity {
 
-    private Button btn_play, btn_stop, btn_start, btn_end, btn_restore;
+    private Button btn_play, btn_stop;
     private TextView txt_song, txt_artist, txt_song_timing, txt_song_duration;
     private Uri urisong;
     private MusicService musicSrv;
     private Intent playIntent;
     private boolean stop=true;
-    private SeekBar seekBar;
-    //    private RangeSeekBar<Double> rangeSeekBar;
+    private RangeSeekBar<Integer> songSeekBar, loopSeekBar;
     private Handler handler;
     private Runnable runnable;
     private Integer duration =0;
@@ -53,6 +54,16 @@ public class MusicPlayerActivity extends AppCompatActivity {
             playIntent = new Intent(this, MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        super.onSaveInstanceState(outState, outPersistentState);
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
+        super.onRestoreInstanceState(savedInstanceState, persistentState);
     }
 
     @Override
@@ -72,6 +83,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_player);
 
+        //permisos
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -81,25 +93,18 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 return;
             }}
 
-        //Inicialitzar button i textview
+        //inicialitzar
         btn_play = findViewById(R.id.btn_play);
-        btn_stop = findViewById(R.id.btn_stop_loop);
+        btn_stop = findViewById(R.id.btn_stop);
         txt_song = findViewById(R.id.txt_song);
         txt_artist = findViewById(R.id.txt_artist);
         txt_song_timing = findViewById(R.id.txt_song_timing);
         txt_song_duration = findViewById(R.id.txt_song_duration);
+        songSeekBar =  findViewById(R.id.songSeekBar);
+        loopSeekBar = findViewById(R.id.loopSeekBar);
 
-        btn_start = findViewById(R.id.btn_start);
-        btn_end = findViewById(R.id.btn_end);
-        btn_restore = findViewById(R.id.btn_restore);
-
-        txt_song.setText(R.string.nothing_playing);
-        txt_artist.setText("---");
-
+        //crear handler (per la seekbar)
         handler = new Handler();
-
-        seekBar = findViewById(R.id.seekBar);
-
     }
 
     //Connexió al servei
@@ -118,6 +123,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     };
 
+    //Buttons
     public void click_play(View view){
 
         if (urisong != null) {
@@ -133,9 +139,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     //i reproduirla
                     musicSrv.playSong();
                 } else {
-                    if (seekBar.getProgress() != musicSrv.getCurrentPosition()) { //actualitzar cançó
+                    if (songSeekBar.getSelectedMaxValue() != musicSrv.getCurrentPosition()) { //actualitzar cançó
                         // si es canvia la posició a la seekbar
-                        musicSrv.replaySongFrom(seekBar.getProgress());
+                        musicSrv.replaySongFrom(songSeekBar.getSelectedMaxValue());
                     }
 
                     else {
@@ -175,7 +181,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     }
 
-    //Menu
+    //Menu (crear)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -183,6 +189,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         return true;
     }
 
+    //Menu (sel·lecció d'items)
     @Override
     public boolean onOptionsItemSelected (MenuItem item)
     {
@@ -204,8 +211,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
                             txt_song.setText("");
                             musicSrv.resetPlayer();
                             musicSrv.isLoop(false);
+                            loopSeekBar.setSelectedMinValue(0);
+                            loopSeekBar.setSelectedMaxValue(duration);
 
-                            txt_song.setText(R.string.pick_song_first);
+                            txt_song.setText(R.string.nothing_playing);
                             txt_artist.setText("---");
                             txt_song_duration.setText("00:00");
                             txt_song_timing.setText("00:00");
@@ -222,18 +231,17 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     }
 
+    //buscar cançó
     public void performFileSearch() {
-        //1. Crear un intent
         Intent intent = new Intent(this,MusicListActivity.class);
-        //3. Passar l'intent a Android perquè inicialitzi l'activitat
         startActivityForResult(intent, 0);
     }
 
+    //resultat
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case 0:
-                // (IV)
                 if (resultCode == AppCompatActivity.RESULT_OK) {
                     //obtenir dades
                     String songname = data.getStringExtra("songname");
@@ -250,33 +258,51 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                     txt_song_duration.setText(generateMinutesandSeconds(duration));
 
-                    //inicialitzar els valors i colocar la seekbar a 0
-                    seekBar.setProgress(0);
-                    seekBar.setMax(duration);
+                    //inicialitzar els valors i colocar la seekbar de la cançó a 0
+                    songSeekBar.setRangeValues(0, duration);
 
-                    seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-
+                    songSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
                         @Override
-                        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                        public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
+                            //si hi ha bucle
+                            if (musicSrv.getLoop() == true) {
+                                //si es mou fora de bucle es posa a dins
+                                if (maxValue < musicSrv.getStartPoint() || maxValue > loopSeekBar.getSelectedMaxValue()) {
+                                    musicSrv.seekTo(musicSrv.getStartPoint());
+                                }
+                            }
 
-                            if (b) {
-                                musicSrv.seekTo(i);
+                            else {
+                                musicSrv.seekTo(maxValue);
                             }
                         }
+                    });
 
+                    //el mateix per la rangeSeekBar
+                    loopSeekBar.setRangeValues(0, duration);
+
+                    loopSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
                         @Override
-                        public void onStartTrackingTouch(SeekBar seekBar) {
+                        public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
+                            musicSrv.setStartPoint(minValue);
+                            musicSrv.setEndPoint(maxValue);
+                            musicSrv.isLoop(true);
 
-                        }
+                            //si s'està reproduint fora del bucle es posa a dins
+                            if (musicSrv.getCurrentPosition() < minValue || musicSrv.getCurrentPosition() > maxValue) {
+                                musicSrv.seekTo(minValue); }
 
-                        @Override
-                        public void onStopTrackingTouch(SeekBar seekBar) {
+                            //eliminar bucle
+                            if (minValue == 0 && maxValue == duration) {
+                                musicSrv.isLoop(false);
+                            }
                         }
                     });
                 }
         }
     }
 
+    //Generar temps en format 00:00
     private String generateMinutesandSeconds(Integer millis) {
         return String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(millis),
@@ -285,13 +311,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
         );
     }
 
-    //actualitzar  seekbar (i timing)
+    //Actualitzar  seekbar (i timing)
     private void playCycle() {
 
         runnable = new Runnable() {
             @Override
             public void run() {
-                seekBar.setProgress(musicSrv.getCurrentPosition());
+                songSeekBar.setSelectedMaxValue(musicSrv.getCurrentPosition());
                 txt_song_timing.setText(generateMinutesandSeconds(musicSrv.getCurrentPosition()));
                 playCycle();
             }
@@ -299,31 +325,14 @@ public class MusicPlayerActivity extends AppCompatActivity {
         handler.postDelayed(runnable, 500);
     }
 
-    //inici del bucle
-    public void click_start(View view) {
-        if (urisong != null) {
-            musicSrv.setStartPoint(musicSrv.getCurrentPosition());
-        }
-    }
+    //todo: auriculars
 
-    //fi del bucle
-    public void click_end(View view) {
-        if (urisong != null) {
-            musicSrv.setEndPoint(musicSrv.getCurrentPosition());
-            musicSrv.isLoop(true);
-            musicSrv.replaySongFrom(musicSrv.getStartPoint());
-        }
-    }
 
-    //eliminar punts del bucle
-    public void click_restore(View view) {
-        if (urisong != null) {
-            musicSrv.setStartPoint(0);
-            musicSrv.setEndPoint(duration);
-            musicSrv.stopLoop();
-            musicSrv.isLoop(false);
-        }
-    }
+    //todo: trucades
+
+
+    //todo: notification bar
+
 
     //TODO: ARREGLAR PROBLEMA AMB FORMAT (CONVERSIÓ DE FORMAT??)
 }

@@ -54,7 +54,7 @@ public class MusicListActivity extends AppCompatActivity {
         songView.setAdapter(adapter);
     }
 
-    //menú (lupa)
+    //menú lupa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -66,6 +66,7 @@ public class MusicListActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    //menú lupa (canvi de text)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -101,8 +102,8 @@ public class MusicListActivity extends AppCompatActivity {
         }
     }
 
+    //obtenir la informació de la cançó
     public void getSongList() {
-        //obtenir la informació de la cançó
         //1. instancia de content resolver
         ContentResolver musicResolver = getContentResolver();
         //2. Obtenir l'URI els arxius de música del telèfon
