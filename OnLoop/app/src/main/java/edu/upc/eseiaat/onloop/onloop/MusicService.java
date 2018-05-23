@@ -1,11 +1,13 @@
 package edu.upc.eseiaat.onloop.onloop;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -22,6 +24,7 @@ public class MusicService extends Service implements
     private int start, end;
     private Runnable runnable;
     private Handler handler;
+    private AudioManager audioManager;
 
     @Override
     public void onCreate(){
@@ -168,12 +171,34 @@ public class MusicService extends Service implements
         handler.postDelayed(runnable, 500);
     }
 
-    public void stopLoop(){
-        handler.removeCallbacks(runnable);
+    //velocitat
+    public void changeplayerSpeed(float speed) {
+        // this checks on API 23 and up
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            boolean p = true;
+            int pos = 0;
+
+            if (player != null) {
+                if (!player.isPlaying()) {
+                    p = false;
+                    pos = player.getCurrentPosition();
+                }
+                player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
+                if (p == false) {
+                    player.stop();
+                    seekTo(pos);
+                    p = true;
+                    //todo: ?? no va
+                }
+            }
+        }
     }
 
-
     //getters i setters
+    public boolean isPlaying() {
+        return player.isPlaying();
+    }
+
     public void isLoop(boolean loop) {
         this.loop = loop;
     }

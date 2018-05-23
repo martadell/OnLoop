@@ -1,15 +1,15 @@
 package edu.upc.eseiaat.onloop.onloop;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -18,16 +18,17 @@ import android.os.PersistableBundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.app.Notification;
+import android.app.PendingIntent;
 
 import org.florescu.android.rangeseekbar.RangeSeekBar;
 
@@ -36,15 +37,21 @@ import java.util.concurrent.TimeUnit;
 public class MusicPlayerActivity extends AppCompatActivity {
 
     private Button btn_play, btn_stop;
-    private TextView txt_song, txt_artist, txt_song_timing, txt_song_duration;
+    private TextView txt_song, txt_artist, txt_song_timing, txt_song_duration, txt_speed, txt_speed_value;
     private Uri urisong;
     private MusicService musicSrv;
     private Intent playIntent;
     private boolean stop=true;
     private RangeSeekBar<Integer> songSeekBar, loopSeekBar;
+    private SeekBar speedSeekBar;
     private Handler handler;
     private Runnable runnable;
     private Integer duration =0;
+
+    private static final int NOTIFICATION_ID = 2904;
+    private boolean ongoingCall = false;
+    private PhoneStateListener phoneStateListener;
+    private TelephonyManager telephonyManager;
 
     //Iniciar el servei a onstart (perquè s'obri ja quan s'obre també l'app)
     @Override
@@ -74,6 +81,11 @@ public class MusicPlayerActivity extends AppCompatActivity {
             musicSrv=null;
 
             handler.removeCallbacks(runnable);
+
+            if (phoneStateListener != null) {
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+            }
+            unregisterReceiver(becomingNoisyReceiver);
         }
         super.onDestroy();
     }
@@ -102,9 +114,48 @@ public class MusicPlayerActivity extends AppCompatActivity {
         txt_song_duration = findViewById(R.id.txt_song_duration);
         songSeekBar =  findViewById(R.id.songSeekBar);
         loopSeekBar = findViewById(R.id.loopSeekBar);
+        speedSeekBar = findViewById(R.id.speedSeekBar);
+        txt_speed = findViewById(R.id.txt_speed);
+        txt_speed_value = findViewById(R.id.txt_speed_value);
 
         //crear handler (per la seekbar)
         handler = new Handler();
+
+        registerBecomingNoisyReceiver();
+        callStateListener();
+
+
+        //velocitat
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                speedSeekBar.setMax(8);
+                speedSeekBar.setProgress(4);
+                txt_speed_value.setText("1.0");
+                speedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                        musicSrv.changeplayerSpeed(getConvertedValue(i));
+                        txt_speed_value.setText(String.valueOf(getConvertedValue(i)));
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+
+                    }
+                });
+
+        }
+
+            else  {
+            speedSeekBar.setVisibility(View.GONE);
+            txt_speed.setVisibility(View.GONE);
+            txt_speed_value.setVisibility(View.GONE);
+        }
+
     }
 
     //Connexió al servei
@@ -218,6 +269,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                             txt_artist.setText("---");
                             txt_song_duration.setText("00:00");
                             txt_song_timing.setText("00:00");
+                            speedSeekBar.setProgress(4);
                         }
                     }
                 });
@@ -249,8 +301,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     String songpath = data.getStringExtra("songpath");
                     String songduration = data.getStringExtra("songduration");
 
-
-                    Log.i("marta", "song name: " + songname);
                     txt_song.setText(songname);
                     txt_artist.setText(songartist);
                     urisong = Uri.parse(songpath);
@@ -325,11 +375,58 @@ public class MusicPlayerActivity extends AppCompatActivity {
         handler.postDelayed(runnable, 500);
     }
 
-    //todo: auriculars
+    //auriculars
+    private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            musicSrv.pausePlayer();
+            btn_play.setText("Play");
+            stop = true;
+        }
+    };
 
+    private void registerBecomingNoisyReceiver() {
+        //register after getting audio focus
+        IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        registerReceiver(becomingNoisyReceiver, intentFilter);
+    }
 
-    //todo: trucades
+    //trucades
+    private void callStateListener() {
+        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                switch (state) {
+                    //si al menys hi h una trucada durant la reproducció
+                    case TelephonyManager.CALL_STATE_OFFHOOK:
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        if (musicSrv != null) {
+                            musicSrv.pausePlayer();
+                            btn_play.setText("Play");
+                            stop = true;
+                        }
+                        break;
+                    case TelephonyManager.CALL_STATE_IDLE:
+                        if (musicSrv != null) {
+                            if (ongoingCall) {
+                                ongoingCall = false;
+                                musicSrv.seekTo(songSeekBar.getSelectedMaxValue());
+                            }
+                        }
+                        break;
+                }
+            }
+        };
+        //registrar el listener amb el telephony manager i "escoltar" canvis
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+    }
 
+    public float getConvertedValue(int i) {
+        float fl = (float) 0.0;
+        fl = .25f * i;
+        return fl;
+    }
 
     //todo: notification bar
 

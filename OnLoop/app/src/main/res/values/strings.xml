@@ -7,4 +7,5 @@
     <string name="clear_player">Clear music player</string>
     <string name="clear_player_message">Are you sure you want to reset the music player?</string>
     <string name="search_item">Search for a song name or artist...</string>
+    <string name="speed">Speed</string>
 </resources>

@@ -11,8 +11,9 @@
         android:id="@+id/btn_play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/btn_stop"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:layout_marginTop="214dp"
         android:onClick="click_play"
         android:text="Play" />
 
@@ -20,9 +21,8 @@
         android:id="@+id/btn_stop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/btn_play"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="44dp"
         android:onClick="click_stop"
         android:text="Stop" />
 
@@ -72,11 +72,8 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/songSeekBar"
         android:adjustViewBounds="false"
-        android:clickable="true"
         android:fadeScrollbars="false"
         android:longClickable="false"
-        android:scrollbarAlwaysDrawHorizontalTrack="true"
-        android:scrollbarAlwaysDrawVerticalTrack="false"
         app:alwaysActive="true"
         app:showLabels="false"
         app:thumbShadow="false"
@@ -102,5 +99,30 @@
         android:paddingLeft="10dp"
         android:text="00:00"
         android:layout_alignParentRight="true" />
+
+    <TextView
+        android:id="@+id/txt_speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/speedSeekBar"
+        android:layout_centerHorizontal="true"
+        android:text="@string/speed" />
+
+    <SeekBar
+        android:id="@+id/speedSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="66dp" />
+
+    <TextView
+        android:id="@+id/txt_speed_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/speedSeekBar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-66dp"
+        android:text="" />
 
 </RelativeLayout>
