@@ -46,59 +46,45 @@
         android:textColor="@color/colorPrimaryDark"
         android:textSize="24sp" />
 
-
-    <org.florescu.android.rangeseekbar.RangeSeekBar
+    <SeekBar
         android:id="@+id/songSeekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/txt_artist"
-        android:clickable="true"
-        android:duplicateParentState="false"
-        android:fadeScrollbars="true"
-        android:longClickable="true"
-        android:soundEffectsEnabled="false"
-        app:alwaysActive="true"
-        app:showLabels="false"
-        app:singleThumb="true"
-        app:valuesAboveThumbs="false"
-        android:focusable="true"
-        android:layout_alignParentLeft="true" />
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="126dp" />
 
-    <org.florescu.android.rangeseekbar.RangeSeekBar
+    <com.crystal.crystalrangeseekbar.widgets.BubbleThumbRangeSeekbar
         android:id="@+id/loopSeekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/songSeekBar"
-        android:adjustViewBounds="false"
-        android:fadeScrollbars="false"
-        android:longClickable="false"
-        app:alwaysActive="true"
-        app:showLabels="false"
-        app:thumbShadow="false"
-        app:valuesAboveThumbs="false"
-        android:layout_alignParentLeft="true"/>
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="168dp"
+        android:padding="15dp" />
 
     <TextView
         android:id="@+id/txt_song_timing"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/loopSeekBar"
         android:paddingLeft="10dp"
-        android:text="00:00"
-        android:layout_alignParentLeft="true" />
+        android:paddingTop="10dp"
+        android:text="00:00" />
 
     <TextView
         android:id="@+id/txt_song_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/loopSeekBar"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/txt_song_timing"
         android:paddingLeft="10dp"
-        android:text="00:00"
-        android:layout_alignParentRight="true" />
+        android:paddingTop="10dp"
+        android:text="00:00" />
 
     <TextView
         android:id="@+id/txt_speed"
@@ -113,8 +99,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="66dp" />
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="66dp"
+        android:layout_alignParentLeft="true" />
 
     <TextView
         android:id="@+id/txt_speed_value"

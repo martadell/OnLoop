@@ -1,7 +1,6 @@
 package edu.upc.eseiaat.onloop.onloop;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -24,7 +23,6 @@ public class MusicService extends Service implements
     private int start, end;
     private Runnable runnable;
     private Handler handler;
-    private AudioManager audioManager;
 
     @Override
     public void onCreate(){
@@ -199,11 +197,11 @@ public class MusicService extends Service implements
         return player.isPlaying();
     }
 
-    public void isLoop(boolean loop) {
+    public void setLoop(boolean loop) {
         this.loop = loop;
     }
 
-    public boolean getLoop() {
+    public boolean isLoop() {
         return loop;
     }
 

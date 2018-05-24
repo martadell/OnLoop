@@ -27,10 +27,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.app.Notification;
-import android.app.PendingIntent;
 
-import org.florescu.android.rangeseekbar.RangeSeekBar;
+import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarChangeListener;
+import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarFinalValueListener;
+import com.crystal.crystalrangeseekbar.widgets.BubbleThumbRangeSeekbar;
 
 import java.util.concurrent.TimeUnit;
 
@@ -42,8 +42,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private MusicService musicSrv;
     private Intent playIntent;
     private boolean stop=true;
-    private RangeSeekBar<Integer> songSeekBar, loopSeekBar;
-    private SeekBar speedSeekBar;
+    private BubbleThumbRangeSeekbar loopSeekBar;
+    private SeekBar songSeekBar, speedSeekBar;
     private Handler handler;
     private Runnable runnable;
     private Integer duration =0;
@@ -133,7 +133,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 speedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                        musicSrv.changeplayerSpeed(getConvertedValue(i));
+                        if (urisong != null) {
+                        musicSrv.changeplayerSpeed(getConvertedValue(i)); }
                         txt_speed_value.setText(String.valueOf(getConvertedValue(i)));
                     }
 
@@ -190,14 +191,14 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     //i reproduirla
                     musicSrv.playSong();
                 } else {
-                    if (songSeekBar.getSelectedMaxValue() != musicSrv.getCurrentPosition()) { //actualitzar cançó
+                    if (songSeekBar.getProgress() != musicSrv.getCurrentPosition()) { //actualitzar cançó
                         // si es canvia la posició a la seekbar
-                        musicSrv.replaySongFrom(songSeekBar.getSelectedMaxValue());
+                        musicSrv.replaySongFrom(songSeekBar.getProgress());
                     }
 
                     else {
                         musicSrv.replaySongFrom(musicSrv.getCurrentPosition());
-                    }
+                   }
                 }
 
                 btn_play.setText("Pause");
@@ -216,7 +217,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     public void click_stop(View view) {
         if (urisong != null) {
-            if (musicSrv.getLoop() == true) {
+            if (musicSrv.isLoop() == true) {
                 musicSrv.pausePlayer();
                 musicSrv.seekTo(musicSrv.getStartPoint());
             }
@@ -261,9 +262,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
                             urisong = null;
                             txt_song.setText("");
                             musicSrv.resetPlayer();
-                            musicSrv.isLoop(false);
-                            loopSeekBar.setSelectedMinValue(0);
-                            loopSeekBar.setSelectedMaxValue(duration);
+                            musicSrv.setLoop(false);
+                            loopSeekBar.setMinValue(0);
+                            loopSeekBar.setMaxValue(duration);
 
                             txt_song.setText(R.string.nothing_playing);
                             txt_artist.setText("---");
@@ -309,45 +310,70 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     txt_song_duration.setText(generateMinutesandSeconds(duration));
 
                     //inicialitzar els valors i colocar la seekbar de la cançó a 0
-                    songSeekBar.setRangeValues(0, duration);
+                    songSeekBar.setMax(duration);
 
-                    songSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
+                    songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                         @Override
-                        public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
-                            //si hi ha bucle
-                            if (musicSrv.getLoop() == true) {
-                                //si es mou fora de bucle es posa a dins
-                                if (maxValue < musicSrv.getStartPoint() || maxValue > loopSeekBar.getSelectedMaxValue()) {
+                        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                            if (musicSrv.isLoop()) {
+                                if (i < musicSrv.getStartPoint() || i > musicSrv.getEndPoint()) {
+                                    //si es mou per fora del bucle
                                     musicSrv.seekTo(musicSrv.getStartPoint());
+                                }
+
+                                else {
+                                    if (b) {
+                                        musicSrv.seekTo(i);
+                                    }
                                 }
                             }
 
                             else {
-                                musicSrv.seekTo(maxValue);
+                                if (b) { //si el canvi ha estat fet per l'usuari
+                                    musicSrv.seekTo(i);
+                                }
                             }
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar seekBar) {
+
+                        }
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar seekBar) {
                         }
                     });
 
                     //el mateix per la rangeSeekBar
-                    loopSeekBar.setRangeValues(0, duration);
+                   loopSeekBar.setMinValue(0);
+                   loopSeekBar.setMaxValue(duration);
 
-                    loopSeekBar.setOnRangeSeekBarChangeListener(new RangeSeekBar.OnRangeSeekBarChangeListener<Integer>() {
-                        @Override
-                        public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
-                            musicSrv.setStartPoint(minValue);
-                            musicSrv.setEndPoint(maxValue);
-                            musicSrv.isLoop(true);
+                   loopSeekBar.setOnRangeSeekbarChangeListener(new OnRangeSeekbarChangeListener() {
+                       @Override
+                       public void valueChanged(Number minValue, Number maxValue) {
+                           //valors txt canvi
+                       }
+                   });
 
-                            //si s'està reproduint fora del bucle es posa a dins
-                            if (musicSrv.getCurrentPosition() < minValue || musicSrv.getCurrentPosition() > maxValue) {
-                                musicSrv.seekTo(minValue); }
+                   loopSeekBar.setOnRangeSeekbarFinalValueListener(new OnRangeSeekbarFinalValueListener() {
+                       @Override
+                       public void finalValue(Number minValue, Number maxValue) {
+                           musicSrv.setStartPoint(minValue.intValue());
+                           musicSrv.setEndPoint(maxValue.intValue());
+                           musicSrv.setLoop(true);
 
-                            //eliminar bucle
-                            if (minValue == 0 && maxValue == duration) {
-                                musicSrv.isLoop(false);
-                            }
-                        }
-                    });
+                           //si s'està reproduint fora del bucle es posa a dins
+                           if (musicSrv.getCurrentPosition() < minValue.intValue() || musicSrv.getCurrentPosition() > maxValue.intValue()) {
+                               musicSrv.seekTo(minValue.intValue());
+                           }
+
+                           //eliminar bucle
+                           if (minValue.intValue() == 0 && maxValue == duration) {
+                               musicSrv.setLoop(false);
+                           }
+                       }
+                   });
                 }
         }
     }
@@ -367,7 +393,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
-                songSeekBar.setSelectedMaxValue(musicSrv.getCurrentPosition());
+                songSeekBar.setProgress(musicSrv.getCurrentPosition());
                 txt_song_timing.setText(generateMinutesandSeconds(musicSrv.getCurrentPosition()));
                 playCycle();
             }
@@ -411,7 +437,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                         if (musicSrv != null) {
                             if (ongoingCall) {
                                 ongoingCall = false;
-                                musicSrv.seekTo(songSeekBar.getSelectedMaxValue());
+                                musicSrv.seekTo(songSeekBar.getProgress());
                             }
                         }
                         break;
@@ -427,9 +453,4 @@ public class MusicPlayerActivity extends AppCompatActivity {
         fl = .25f * i;
         return fl;
     }
-
-    //todo: notification bar
-
-
-    //TODO: ARREGLAR PROBLEMA AMB FORMAT (CONVERSIÓ DE FORMAT??)
 }
