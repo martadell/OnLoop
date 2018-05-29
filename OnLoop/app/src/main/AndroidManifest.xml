@@ -12,18 +12,22 @@
         android:screenOrientation="portrait"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity android:name=".MusicPlayerActivity">
+        android:theme="@style/OnLoop">
+        <activity android:name=".MusicPlayerActivity"
+            android:theme="@style/OnLoop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MusicListActivity"></activity>
+
+        <activity android:name=".MusicListActivity"
+            android:theme="@style/OnLoop"></activity>
         <service
             android:enabled="true"
-            android:name=".MusicService" />
+            android:name=".MusicService"
+            android:launchMode="singleInstance"/>
     </application>
 
 

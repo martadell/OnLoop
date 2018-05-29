@@ -150,11 +150,6 @@ public class MusicService extends Service implements
         player.start();
     }
 
-    public void stopPlayer() {
-        player.stop();
-        player.reset();
-    }
-
     public void seekTo(int i) {
         player.seekTo(i);
     }
@@ -348,16 +343,10 @@ public class MusicService extends Service implements
     }
 
     public void closeNotification() {
+
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(NOTIFICATION_ID);
     }
-
-    public boolean isNotificationVisible() {
-        Intent notificationIntent = new Intent(this, MusicPlayerActivity.class);
-        PendingIntent test = PendingIntent.getActivity(this, NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_NO_CREATE);
-        return test != null;
-    }
-
 
     //Per android 8.0 o més
     private void createNotificationChannel() {

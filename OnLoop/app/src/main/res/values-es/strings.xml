@@ -3,8 +3,10 @@
     <string name="explore">Seleccionar cancion</string>
     <string name="clear">Resetear</string>
     <string name="search">Buscar</string>
-    <string name="nothing_playing">Escoge una canción primero</string>
+    <string name="nothing_playing">Clica y escoge una canción primero</string>
     <string name="clear_player">Resetear reproductor</string>
     <string name="clear_player_message">¿Estás seguro de que quieres resetear todos los valores?</string>
     <string name="search_item">Busca una cancion o artista...</string>
+    <string name="speed">Velocidad</string>
+    <string name="back_exit">Clica otra vez ATRÁS para salir de la aplicación</string>
 </resources>

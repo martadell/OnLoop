@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimaryDark">#303f9f</color>
     <color name="colorAccent">#ff4081</color>
+    <color name="onLoopPrimary">#9dc1dd</color>
+    <color name="onLoopPrimaryDark">#577e9a</color>
+    <color name="onLoopAccent">#8dd896</color>
+    <color name="onLoopPrimaryTransparent">#419dc1dd</color>
+    <color name="onLoopPrimaryDarkTransparent">#41577e9a</color>
 </resources>

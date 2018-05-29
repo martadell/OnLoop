@@ -8,4 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="OnLoop" parent="AppTheme" >
+        <item name="colorPrimary">@color/onLoopPrimary</item>
+        <item name="colorPrimaryDark">@color/onLoopPrimaryDark</item>
+        <item name="colorAccent">@color/onLoopAccent</item>
+    </style>
+
 </resources>

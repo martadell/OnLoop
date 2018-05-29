@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -17,43 +16,40 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.support.annotation.RequiresApi;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarChangeListener;
 import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarFinalValueListener;
-import com.crystal.crystalrangeseekbar.widgets.BubbleThumbRangeSeekbar;
+import com.crystal.crystalrangeseekbar.widgets.CrystalRangeSeekbar;
 
 import java.util.concurrent.TimeUnit;
 
 public class MusicPlayerActivity extends AppCompatActivity {
 
-    private Button btn_play, btn_stop;
+    private ImageButton btn_play;
+    private Button btn_explore;
     private TextView txt_song, txt_artist, txt_song_timing, txt_loop_start, txt_loop_end,
             txt_speed, txt_speed_value;
     private Uri urisong;
     private MusicService musicSrv;
     private Intent playIntent;
     private boolean stop=true, doubleBackToExitPressedOnce=false;
-    private BubbleThumbRangeSeekbar loopSeekBar;
+    private CrystalRangeSeekbar loopSeekBar;
     private SeekBar songSeekBar, speedSeekBar;
     private Handler handler;
     private Runnable runnable;
     private Integer duration =0;
 
-    private static final int NOTIFICATION_ID = 2904;
     private boolean ongoingCall = false;
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
@@ -77,7 +73,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         outState.putInt("duration", duration);
         outState.putInt("position", musicSrv.getCurrentPosition());
         outState.putInt("startLoop", musicSrv.getStartPoint());
-        outState.putInt("endLoop", musicSrv.getEndPoint());
         outState.putString("urisong", urisong.toString());
         Log.i("marta", urisong.toString());
         outState.putInt("speed", speedSeekBar.getProgress());
@@ -143,10 +138,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         //inicialitzar
         btn_play = findViewById(R.id.btn_play);
-        btn_stop = findViewById(R.id.btn_stop);
+        btn_explore = findViewById(R.id.btn_explore);
         txt_song = findViewById(R.id.txt_song);
         txt_artist = findViewById(R.id.txt_artist);
-         txt_song_timing = findViewById(R.id.txt_song_timing);
+        txt_song_timing = findViewById(R.id.txt_song_timing);
         txt_loop_start = findViewById(R.id.txt_loop_start);
         txt_loop_end = findViewById(R.id.txt_loop_end);
         songSeekBar =  findViewById(R.id.songSeekBar);
@@ -154,6 +149,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
         speedSeekBar = findViewById(R.id.speedSeekBar);
         txt_speed = findViewById(R.id.txt_speed);
         txt_speed_value = findViewById(R.id.txt_speed_value);
+
+        btn_explore.setVisibility(View.GONE);
 
         //crear handler (per la seekbar)
         handler = new Handler();
@@ -198,10 +195,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             txt_speed_value.setVisibility(View.GONE);
         }
 
-        if (musicSrv.isNotificationVisible()) {
-            musicSrv.closeNotification();
-        }
-
         if(savedInstanceState != null) {
             Bundle state = savedInstanceState;
             txt_song.setText(state.getString("songname"));
@@ -211,8 +204,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             loopSeekBar.setMinStartValue(state.getInt("endLoop"));
             duration = state.getInt("duration");
             speedSeekBar.setProgress(state.getInt("speed"));
-            String uri = state.getString("urisong");
-            urisong = Uri.parse(uri);
+            urisong = Uri.parse(state.getString("urisong"));
         }
 
     }
@@ -257,13 +249,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
                    }
                 }
 
-                btn_play.setText("Pause");
+                btn_play.setBackgroundResource(android.R.drawable.ic_media_pause);
                 stop = false;
 
             } else {
 
                 musicSrv.pausePlayer(); //pause
-                btn_play.setText("Play");
+                btn_play.setBackgroundResource(android.R.drawable.ic_media_play);
                 stop = true;
 
             }
@@ -283,62 +275,20 @@ public class MusicPlayerActivity extends AppCompatActivity {
             }
 
             if (!stop) {
-                btn_play.setText("Play");
+                btn_play.setBackgroundResource(android.R.drawable.ic_media_play);
                 stop = true;
             }
         }
     }
 
-    //Menu (crear)
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.musiclist_menu, menu);
-        return true;
+    public void click_explore(View view) {
+        if (urisong == null) {
+            performFileSearch();
+        }
     }
 
-    //Menu (sel·lecció d'items)
-    @Override
-    public boolean onOptionsItemSelected (MenuItem item)
-    {
-        switch (item.getItemId()) {
-            case R.id.explore:
-                performFileSearch();
-
-                return true;
-
-            case R.id.clear:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(R.string.clear_player);
-                builder.setMessage(R.string.clear_player_message);
-                builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        if (urisong != null) {
-                            urisong = null;
-                            txt_song.setText("");
-                            musicSrv.resetPlayer();
-                            musicSrv.setLoop(false);
-                            loopSeekBar.setMinValue(0);
-                            loopSeekBar.setMaxValue(duration);
-
-                            txt_song.setText(R.string.nothing_playing);
-                            txt_artist.setText("---");
-                            txt_loop_start.setText("00:00");
-                            txt_loop_end.setText("00:00");
-                            txt_song_timing.setText("00:00");
-                            speedSeekBar.setProgress(5);
-                        }
-                    }
-                });
-                builder.setNegativeButton(android.R.string.cancel, null);
-                builder.create().show();
-
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+    public void click_explore2(View view) {
+            performFileSearch();
     }
 
     //buscar cançó
@@ -367,6 +317,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     duration = Integer.valueOf(songduration);
 
                     musicSrv.setSongParams(songname, songartist, urisong, duration);
+
+                    btn_explore.setVisibility(View.VISIBLE);
 
                     txt_loop_end.setText(generateMinutesandSeconds(duration));
 
@@ -469,7 +421,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             musicSrv.pausePlayer();
-            btn_play.setText("Play");
+            btn_play.setBackgroundResource(android.R.drawable.ic_media_play);
             stop = true;
         }
     };
@@ -492,7 +444,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (musicSrv != null) {
                             musicSrv.pausePlayer();
-                            btn_play.setText("Play");
+                            btn_play.setBackgroundResource(android.R.drawable.ic_media_play);
                             stop = true;
                         }
                         break;
