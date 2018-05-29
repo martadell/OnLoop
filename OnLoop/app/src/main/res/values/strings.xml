@@ -8,4 +8,9 @@
     <string name="clear_player_message">Are you sure you want to reset the music player?</string>
     <string name="search_item">Search for a song name or artist...</string>
     <string name="speed">Speed</string>
+    <string name="channel_name" translatable="false">OnLoop_Channel_ID</string>
+    <string name="channel_description" translatable="false">Channel ID for OnLoop</string>
+    <string name="pause">Pause</string>
+    <string name="stop">Stop7</string>
+    <string name="back_exit">Please click BACK again to exit</string>
 </resources>

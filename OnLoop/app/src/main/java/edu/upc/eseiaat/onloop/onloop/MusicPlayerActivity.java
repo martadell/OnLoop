@@ -1,6 +1,7 @@
 package edu.upc.eseiaat.onloop.onloop;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,11 +16,13 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PersistableBundle;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,6 +30,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarChangeListener;
 import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarFinalValueListener;
@@ -37,11 +41,12 @@ import java.util.concurrent.TimeUnit;
 public class MusicPlayerActivity extends AppCompatActivity {
 
     private Button btn_play, btn_stop;
-    private TextView txt_song, txt_artist, txt_song_timing, txt_song_duration, txt_speed, txt_speed_value;
+    private TextView txt_song, txt_artist, txt_song_timing, txt_loop_start, txt_loop_end,
+            txt_speed, txt_speed_value;
     private Uri urisong;
     private MusicService musicSrv;
     private Intent playIntent;
-    private boolean stop=true;
+    private boolean stop=true, doubleBackToExitPressedOnce=false;
     private BubbleThumbRangeSeekbar loopSeekBar;
     private SeekBar songSeekBar, speedSeekBar;
     private Handler handler;
@@ -66,11 +71,24 @@ public class MusicPlayerActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
         super.onSaveInstanceState(outState, outPersistentState);
+
+        outState.putString("songname", txt_song.getText().toString());
+        outState.putString("songartist", txt_artist.getText().toString());
+        outState.putInt("duration", duration);
+        outState.putInt("position", musicSrv.getCurrentPosition());
+        outState.putInt("startLoop", musicSrv.getStartPoint());
+        outState.putInt("endLoop", musicSrv.getEndPoint());
+        outState.putString("urisong", urisong.toString());
+        Log.i("marta", urisong.toString());
+        outState.putInt("speed", speedSeekBar.getProgress());
     }
 
     @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState, PersistableBundle persistentState) {
-        super.onRestoreInstanceState(savedInstanceState, persistentState);
+    protected void onStop() {
+        if (urisong != null) {
+            musicSrv.showNotification();
+        }
+        super.onStop();
     }
 
     @Override
@@ -78,7 +96,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         if(musicSrv != null){
             stopService(playIntent);
             unbindService(musicConnection);
-            musicSrv=null;
 
             handler.removeCallbacks(runnable);
 
@@ -88,6 +105,25 @@ public class MusicPlayerActivity extends AppCompatActivity {
             unregisterReceiver(becomingNoisyReceiver);
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, R.string.back_exit, Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
     }
 
     @Override
@@ -110,8 +146,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
         btn_stop = findViewById(R.id.btn_stop);
         txt_song = findViewById(R.id.txt_song);
         txt_artist = findViewById(R.id.txt_artist);
-        txt_song_timing = findViewById(R.id.txt_song_timing);
-        txt_song_duration = findViewById(R.id.txt_song_duration);
+         txt_song_timing = findViewById(R.id.txt_song_timing);
+        txt_loop_start = findViewById(R.id.txt_loop_start);
+        txt_loop_end = findViewById(R.id.txt_loop_end);
         songSeekBar =  findViewById(R.id.songSeekBar);
         loopSeekBar = findViewById(R.id.loopSeekBar);
         speedSeekBar = findViewById(R.id.speedSeekBar);
@@ -127,15 +164,19 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         //velocitat
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                speedSeekBar.setMax(8);
-                speedSeekBar.setProgress(4);
+                speedSeekBar.setMax(10);
+                speedSeekBar.setProgress(5);
                 txt_speed_value.setText("1.0");
                 speedSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                         if (urisong != null) {
-                        musicSrv.changeplayerSpeed(getConvertedValue(i)); }
-                        txt_speed_value.setText(String.valueOf(getConvertedValue(i)));
+                            musicSrv.changeplayerSpeed(getConvertedValue(i)); }
+                        if (i != 9) {
+                            txt_speed_value.setText(String.valueOf(getConvertedValue(i))); }
+                        else {
+                            txt_speed_value.setText("1.4");
+                        }
                     }
 
                     @Override
@@ -155,6 +196,23 @@ public class MusicPlayerActivity extends AppCompatActivity {
             speedSeekBar.setVisibility(View.GONE);
             txt_speed.setVisibility(View.GONE);
             txt_speed_value.setVisibility(View.GONE);
+        }
+
+        if (musicSrv.isNotificationVisible()) {
+            musicSrv.closeNotification();
+        }
+
+        if(savedInstanceState != null) {
+            Bundle state = savedInstanceState;
+            txt_song.setText(state.getString("songname"));
+            txt_artist.setText(state.getString("songartist"));
+            songSeekBar.setProgress(state.getInt("position"));
+            loopSeekBar.setMinStartValue(state.getInt("startLoop"));
+            loopSeekBar.setMinStartValue(state.getInt("endLoop"));
+            duration = state.getInt("duration");
+            speedSeekBar.setProgress(state.getInt("speed"));
+            String uri = state.getString("urisong");
+            urisong = Uri.parse(uri);
         }
 
     }
@@ -186,9 +244,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             if (stop) { //si no s'està reproduïnt res
 
                 if (musicSrv.getCurrentPosition() == 0) { //si és el primer cop que es reprodueix (està a 0)
-                    // seleccionar cançó
-                    musicSrv.setSong(urisong);
-                    //i reproduirla
+                    //reproduir cançó
                     musicSrv.playSong();
                 } else {
                     if (songSeekBar.getProgress() != musicSrv.getCurrentPosition()) { //actualitzar cançó
@@ -268,9 +324,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                             txt_song.setText(R.string.nothing_playing);
                             txt_artist.setText("---");
-                            txt_song_duration.setText("00:00");
+                            txt_loop_start.setText("00:00");
+                            txt_loop_end.setText("00:00");
                             txt_song_timing.setText("00:00");
-                            speedSeekBar.setProgress(4);
+                            speedSeekBar.setProgress(5);
                         }
                     }
                 });
@@ -291,6 +348,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     //resultat
+    @TargetApi(Build.VERSION_CODES.O)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -307,7 +366,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     urisong = Uri.parse(songpath);
                     duration = Integer.valueOf(songduration);
 
-                    txt_song_duration.setText(generateMinutesandSeconds(duration));
+                    musicSrv.setSongParams(songname, songartist, urisong, duration);
+
+                    txt_loop_end.setText(generateMinutesandSeconds(duration));
 
                     //inicialitzar els valors i colocar la seekbar de la cançó a 0
                     songSeekBar.setMax(duration);
@@ -353,6 +414,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
                        @Override
                        public void valueChanged(Number minValue, Number maxValue) {
                            //valors txt canvi
+                           txt_loop_start.setText(generateMinutesandSeconds(minValue.intValue()));
+                           txt_loop_end.setText(generateMinutesandSeconds(maxValue.intValue()));
                        }
                    });
 
@@ -449,8 +512,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     public float getConvertedValue(int i) {
-        float fl = (float) 0.0;
-        fl = .25f * i;
+        float fl = (float) 0.5;
+        fl = fl + .10f * i;
         return fl;
     }
 }

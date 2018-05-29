@@ -7,24 +7,30 @@
     tools:context="edu.upc.eseiaat.onloop.onloop.MusicPlayerActivity">
 
 
-    <Button
-        android:id="@+id/btn_play"
+    <TextView
+        android:id="@+id/txt_speed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="214dp"
-        android:onClick="click_play"
-        android:text="Play" />
+        android:layout_marginTop="50dp"
+        android:text="@string/speed" />
 
-    <Button
-        android:id="@+id/btn_stop"
+    <SeekBar
+        android:id="@+id/speedSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/txt_speed"
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:id="@+id/txt_speed_value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_play"
+        android:layout_below="@+id/speedSeekBar"
         android:layout_centerHorizontal="true"
-        android:onClick="click_stop"
-        android:text="Stop" />
+        android:text="1.0" />
 
     <TextView
         android:id="@+id/txt_artist"
@@ -41,75 +47,75 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="171dp"
         android:text="@string/nothing_playing"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="24sp" />
-
-    <SeekBar
-        android:id="@+id/songSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="126dp" />
-
-    <com.crystal.crystalrangeseekbar.widgets.BubbleThumbRangeSeekbar
-        android:id="@+id/loopSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="168dp"
-        android:padding="15dp" />
 
     <TextView
         android:id="@+id/txt_song_timing"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/loopSeekBar"
-        android:paddingLeft="10dp"
-        android:paddingTop="10dp"
-        android:text="00:00" />
-
-    <TextView
-        android:id="@+id/txt_song_duration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/txt_song_timing"
-        android:paddingLeft="10dp"
-        android:paddingTop="10dp"
-        android:text="00:00" />
-
-    <TextView
-        android:id="@+id/txt_speed"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/speedSeekBar"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:text="@string/speed" />
+        android:layout_marginBottom="223dp"
+        android:text="00:00" />
 
     <SeekBar
-        android:id="@+id/speedSeekBar"
+        android:id="@+id/songSeekBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:layout_marginBottom="66dp"
-        android:layout_alignParentLeft="true" />
+        android:layout_marginBottom="189dp" />
+
+    <com.crystal.crystalrangeseekbar.widgets.BubbleThumbRangeSeekbar
+        android:id="@+id/loopSeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignBaseline="@id/songSeekBar"
+        android:layout_marginBottom="198dp"
+        android:padding="15dp"
+        app:gap="0.5" />
 
     <TextView
-        android:id="@+id/txt_speed_value"
+        android:id="@+id/txt_loop_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/speedSeekBar"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/songSeekBar"
+        android:layout_marginTop="-189dp"
+        android:text="00:00" />
+
+    <TextView
+        android:id="@+id/txt_loop_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/songSeekBar"
+        android:layout_marginTop="-189dp"
+        android:text="00:00" />
+
+    <Button
+        android:id="@+id/btn_play"
+        android:layout_width="55dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="-66dp"
-        android:text="" />
+        android:layout_marginBottom="90dp"
+        android:onClick="click_play"
+        android:text="Play" />
+
+    <Button
+        android:id="@+id/btn_stop"
+        android:layout_width="57dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btn_play"
+        android:layout_toEndOf="@+id/btn_play"
+        android:onClick="click_stop"
+        android:text="Stop"
+        android:layout_toRightOf="@+id/btn_play" />
 
 </RelativeLayout>
