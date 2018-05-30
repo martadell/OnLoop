@@ -58,24 +58,26 @@ public class MusicPlayerActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(playIntent==null){
+        if(playIntent==null) {
             playIntent = new Intent(this, MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
         }
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
         outState.putString("songname", txt_song.getText().toString());
         outState.putString("songartist", txt_artist.getText().toString());
         outState.putInt("duration", duration);
         outState.putInt("position", musicSrv.getCurrentPosition());
         outState.putInt("startLoop", musicSrv.getStartPoint());
-        outState.putString("urisong", urisong.toString());
-        Log.i("marta", urisong.toString());
+        if (urisong != null) {
+            outState.putString("urisong", urisong.toString());
+        }
         outState.putInt("speed", speedSeekBar.getProgress());
+        // Log.i("marta", urisong.toString());
     }
 
     @Override
@@ -204,7 +206,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
             loopSeekBar.setMinStartValue(state.getInt("endLoop"));
             duration = state.getInt("duration");
             speedSeekBar.setProgress(state.getInt("speed"));
-            urisong = Uri.parse(state.getString("urisong"));
+            String uristr = state.getString("urisong");
+            if (uristr != null) {
+                urisong = Uri.parse(uristr);
+            }
         }
 
     }
