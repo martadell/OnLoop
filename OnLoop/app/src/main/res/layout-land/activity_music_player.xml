@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="12dp"
         android:text="@string/speed" />
 
 
@@ -22,8 +22,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/txt_speed"
-        android:layout_marginTop="15dp" />
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="41dp" />
 
     <TextView
         android:id="@+id/txt_speed_value"
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/speedSeekBar"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="2dp"
         android:background="@drawable/rounded_borders"
         android:padding="5dp"
         android:text="1.0"
@@ -39,13 +39,13 @@
 
     <Button
         android:id="@+id/viewSongInfo"
-        android:layout_width="350dp"
-        android:layout_height="180dp"
+        android:layout_width="600dp"
+        android:layout_height="100dp"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/txt_speed_value"
         android:layout_marginLeft="15dp"
         android:layout_marginRight="15dp"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/rounded_borders2"
         tools:style="@style/Widget.AppCompat.Button.Borderless.Colored" />
 
@@ -57,7 +57,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="25dp"
         android:layout_marginRight="25dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="10dp"
         android:gravity="center"
         android:text=""
         android:textColor="@android:color/secondary_text_light"
@@ -71,7 +71,7 @@
         android:layout_centerHorizontal="true"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginTop="5dp"
         android:gravity="center"
         android:text=""
         android:textSize="18sp" />
@@ -82,10 +82,9 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/viewSongInfo"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="15dp"
+        android:layout_marginBottom="10dp"
         android:text="00:00"
         android:textColor="@android:color/black" />
-
 
     <SeekBar
         android:id="@+id/songSeekBar"
@@ -93,7 +92,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/viewSongInfo"
-        android:layout_marginTop="40dp" />
+        android:layout_marginTop="20dp" />
 
     <com.crystal.crystalrangeseekbar.widgets.CrystalRangeSeekbar
         android:id="@+id/loopSeekBar"
@@ -101,9 +100,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/viewSongInfo"
-        android:layout_marginLeft="7dp"
+        android:layout_marginTop="19dp"
         android:layout_marginRight="7dp"
-        android:layout_marginTop="39dp"
+        android:layout_marginLeft="7dp"
         app:bar_color="@color/onLoopPrimaryTransparent"
         app:bar_highlight_color="@color/onLoopPrimaryDarkTransparent"
         app:gap="0.5"
@@ -133,7 +132,7 @@
         android:layout_height="40dp"
         android:layout_below="@+id/songSeekBar"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:orientation="horizontal">
 
         <ImageButton
