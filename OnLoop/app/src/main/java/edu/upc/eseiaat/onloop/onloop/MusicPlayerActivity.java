@@ -1,6 +1,7 @@
 package edu.upc.eseiaat.onloop.onloop;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
@@ -54,12 +55,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if(musicSrv != null){
-            unbindService(musicConnection);
+        unbindService(musicConnection);
+        handler.removeCallbacks(runnable);
 
-            handler.removeCallbacks(runnable);
-
-        }
         super.onDestroy();
     }
 
@@ -109,7 +107,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             txt_song.setText(R.string.nothing_playing);
         }
 
-
         //velocitat
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 speedSeekBar.setMax(10);
@@ -149,16 +146,17 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
 
 
-        if(binding == false){
+        if(!binding){
             playIntent = new Intent(this, MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             startService(playIntent); //cridem a startService perquè no es tanqui el servei encara que es desvinculi
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             }
         }
 
     //Connexió al servei
     private ServiceConnection musicConnection = new ServiceConnection(){
 
+        @SuppressLint("SetTextI18n")
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
@@ -395,7 +393,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     public Integer getConvertedIntegerValue(float f) {
-        Double d = Double.valueOf(f);
+        Double d = (double) f;
         d = d / .10;
 
         Integer i = d.intValue();
@@ -412,7 +410,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             // first time
             SharedPreferences.Editor editor = preferences.edit();
             editor.putBoolean("RanBefore", true);
-            editor.commit();
+            editor.apply();
         }
         return ranBefore;
     }

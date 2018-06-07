@@ -1,16 +1,11 @@
 <resources>
     <string name="app_name" translatable="false">OnLoop</string>
-    <string name="explore">Explore song</string>
-    <string name="clear">Clear</string>
     <string name="search">Search</string>
-    <string name="nothing_playing">Click to choose a song to listen</string>
-    <string name="clear_player">Clear music player</string>
-    <string name="clear_player_message">Are you sure you want to reset the music player?</string>
-    <string name="search_item">Search for a song name or artist...</string>
+    <string name="nothing_playing">Longclick to choose a song to listen</string>
     <string name="speed">Speed</string>
     <string name="channel_name" translatable="false">OnLoop_Channel_ID</string>
     <string name="channel_description" translatable="false">Channel ID for OnLoop</string>
     <string name="pause" translatable="false">Pause</string>
     <string name="stop" translatable="false">Stop</string>
-    <string name="back_exit">Please click BACK again to exit</string>
+    <string name="now_playing">Now playing</string>
 </resources>

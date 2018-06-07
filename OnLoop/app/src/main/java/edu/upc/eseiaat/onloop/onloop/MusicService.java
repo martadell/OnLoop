@@ -21,6 +21,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -251,32 +252,67 @@ public class MusicService extends Service implements
 
     public Notification buildNotification() {
 
-            Intent notificationIntent = new Intent(this, MusicPlayerActivity.class);
-            notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            PendingIntent pendInt = PendingIntent.getActivity(this, 0,
-                    notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent notificationIntent = new Intent(this, MusicPlayerActivity.class);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendInt = PendingIntent.getActivity(this, 0,
+                notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            Notification.Builder builder = new Notification.Builder(this);
+        Notification.Builder builder = new Notification.Builder(this);
 
-            // Create a new MediaSession
-            final MediaSession mediaSession = new MediaSession(this, "MediaSession");
-            // Update the current metadata
-            mediaSession.setMetadata(new MediaMetadata.Builder()
-                    .putString(MediaMetadata.METADATA_KEY_ARTIST, songartist)
-                    .putString(MediaMetadata.METADATA_KEY_MEDIA_URI, urisong.toString())
-                    .putString(MediaMetadata.METADATA_KEY_TITLE, songname)
-                    .build());
-            // Indicate you're ready to receive media commands
-            mediaSession.setActive(true);
-            // Attach a new Callback to receive MediaSession updates
-            mediaSession.setCallback(new MediaSession.Callback() {
+        // Create a new MediaSession
+        final MediaSession mediaSession = new MediaSession(this, "MediaSession");
+        // Update the current metadata
+        mediaSession.setMetadata(new MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, songartist)
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_URI, urisong.toString())
+                .putString(MediaMetadata.METADATA_KEY_TITLE, songname)
+                .build());
+        // Indicate you're ready to receive media commands
+        mediaSession.setActive(true);
+        // Indicate you want to receive transport controls via your Callback
+        mediaSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);
 
-                // Implement your callbacks
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-            });
-            // Indicate you want to receive transport controls via your Callback
-            mediaSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);
+            if (player.isPlaying()) {
 
+                builder.setContentIntent(pendInt)
+                        .setVisibility(Notification.VISIBILITY_PUBLIC)
+                        .setSmallIcon(R.mipmap.logo)
+                        .setShowWhen(false)
+                        .setContentTitle(songname)
+                        .setContentText(songartist)
+                        .setSubText("Now playing")
+                        .setChannelId(CHANNEL_ID)
+                        .setOngoing(true)
+                        .setAutoCancel(true)
+                        .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
+                                // Show our playback controls in the compat view
+                                .setShowActionsInCompactView(0, 1, 2))
+                        .addAction(R.mipmap.pause, "pause", retreivePlaybackAction(0))
+                        .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
+                        .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
+            } else {
+                builder.setContentIntent(pendInt)
+                        .setVisibility(Notification.VISIBILITY_PUBLIC)
+                        .setSmallIcon(R.mipmap.logo)
+                        .setShowWhen(false)
+                        .setContentTitle(songname)
+                        .setContentText(songartist)
+                        .setSubText("Now playing")
+                        .setChannelId(CHANNEL_ID)
+                        .setOngoing(true)
+                        .setAutoCancel(true)
+                        .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
+                                // Show our playback controls in the compat view
+                                .setShowActionsInCompactView(0, 1, 2))
+                        .addAction(R.mipmap.play, "pause", retreivePlaybackAction(0))
+                        .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
+                        .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
+            }
+        }
+
+        else {
             if (player.isPlaying()) {
 
                 builder.setContentIntent(pendInt)
@@ -295,16 +331,14 @@ public class MusicService extends Service implements
                         .addAction(R.mipmap.pause, "pause", retreivePlaybackAction(0))
                         .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
                         .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
-            }
-
-            else {
+            } else {
                 builder.setContentIntent(pendInt)
                         .setVisibility(Notification.VISIBILITY_PUBLIC)
                         .setSmallIcon(R.mipmap.logo)
                         .setShowWhen(false)
                         .setContentTitle(songname)
                         .setContentText(songartist)
-                        .setSubText("Now playing")
+                        .setSubText(getString(R.string.now_playing))
                         .setOngoing(true)
                         .setPriority(Notification.PRIORITY_HIGH)
                         .setAutoCancel(true)
@@ -315,9 +349,9 @@ public class MusicService extends Service implements
                         .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
                         .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
             }
+        }
 
             return builder.build();
-
     }
 
 
@@ -352,9 +386,10 @@ public class MusicService extends Service implements
     }
 
     public void closeNotification() {
-
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.cancel(NOTIFICATION_ID);
+        if (mNotificationManager != null) {
+            mNotificationManager.cancel(NOTIFICATION_ID);
+        }
     }
 
     //Per android 8.0 o més
@@ -369,9 +404,9 @@ public class MusicService extends Service implements
             channel.setDescription(description);
 
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.createNotificationChannel(channel);
-
-
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
         }
     }
 
@@ -398,8 +433,7 @@ public class MusicService extends Service implements
     }
 
     public boolean isServicePlayingASong() {
-        if (urisong != null)  return true;
-        return false;
+        return urisong != null;
     }
 
     public Integer getDuration() {
