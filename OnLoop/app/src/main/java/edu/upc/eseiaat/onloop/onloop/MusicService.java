@@ -1,6 +1,5 @@
 package edu.upc.eseiaat.onloop.onloop;
 
-import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -21,7 +20,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -82,6 +80,8 @@ public class MusicService extends Service implements
                 player.stop();
                 player.reset();
                 closeNotification();
+
+                //no sé si matar-ho tot com feia abans...
                 //android.os.Process.killProcess(android.os.Process.myPid());
 
                 return Service.START_NOT_STICKY;
@@ -462,11 +462,7 @@ public class MusicService extends Service implements
         @Override
         public void onReceive(Context context, Intent intent) {
             player.pause();
-
-       //     Intent in = new Intent(this,MusicService.class);
- //           startActivityForResult(intent, 0);
-
-       //     Intent intent;
+            //    falta canviar icona
 
         }
     };
@@ -489,7 +485,7 @@ public class MusicService extends Service implements
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (player != null) {
                             player.pause();
-                       //    intent
+                       //    falta canviar icona
                         }
                         break;
                     case TelephonyManager.CALL_STATE_IDLE:
