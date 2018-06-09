@@ -3,9 +3,11 @@ package edu.upc.eseiaat.onloop.onloop;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -14,6 +16,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -41,22 +44,34 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private CrystalRangeSeekbar loopSeekBar;
     private SeekBar songSeekBar, speedSeekBar;
     private Handler handler;
-    private Runnable runnable;
+    private Runnable runnable, exitRunnable;
     private Integer duration =0;
-
 
     @Override
     protected void onStop() {
-        if (urisong != null) {
-            musicSrv.showNotification();
+
+        if (musicSrv != null) {
+            if (!musicSrv.isPlaying()) {
+
+                exitRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        finishAndRemoveTask();
+                    }
+                };
+
+                handler.postDelayed(exitRunnable, 120000);
+            }
         }
-        super.onStop();
+            super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        unbindService(musicConnection);
-        handler.removeCallbacks(runnable);
+        if (musicSrv != null) {
+            unbindService(musicConnection);
+            handler.removeCallbacks(runnable);
+        }
 
         super.onDestroy();
     }
@@ -71,7 +86,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
 
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WAKE_LOCK},1);
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WAKE_LOCK, Manifest.permission.READ_PHONE_STATE},1);
 
                 return;
             }}
@@ -85,19 +100,16 @@ public class MusicPlayerActivity extends AppCompatActivity {
         txt_loop_end = findViewById(R.id.txt_loop_end);
         songSeekBar =  findViewById(R.id.songSeekBar);
         loopSeekBar = findViewById(R.id.loopSeekBar);
-        speedSeekBar = findViewById(R.id.speedSeekBar);
-        txt_speed = findViewById(R.id.txt_speed);
-        txt_speed_value = findViewById(R.id.txt_speed_value);
 
         btn_explore = findViewById(R.id.viewSongInfo);
 
-        btn_explore.setOnLongClickListener(new View.OnLongClickListener() {
+        btn_explore.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View view) {
+            public void onClick(View view) {
+
                 performFileSearch();
-                return true;
             }
-        });
+            });
 
         //crear handler (per la seekbar)
         handler = new Handler();
@@ -109,6 +121,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         //velocitat
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            speedSeekBar = findViewById(R.id.speedSeekBar);
+            txt_speed = findViewById(R.id.txt_speed);
+            txt_speed_value = findViewById(R.id.txt_speed_value);
+
                 speedSeekBar.setMax(10);
                 speedSeekBar.setProgress(5);
                 txt_speed_value.setText("1.0");
@@ -123,7 +139,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                             txt_speed_value.setText("1.4");
                         }
 
-                        btn_play.setBackgroundResource(R.mipmap.pause);
+                        btn_play.setBackgroundResource(R.drawable.pause);
                     }
 
                     @Override
@@ -136,13 +152,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                     }
                 });
-
-        }
-
-            else  {
-            speedSeekBar.setVisibility(View.GONE);
-            txt_speed.setVisibility(View.GONE);
-            txt_speed_value.setVisibility(View.GONE);
         }
 
 
@@ -156,7 +165,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
     //Connexió al servei
     private ServiceConnection musicConnection = new ServiceConnection(){
 
-        @SuppressLint("SetTextI18n")
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
@@ -185,9 +193,13 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                 if (!musicSrv.isPlaying()) {
                     musicSrv.changeplayerSpeed(1);
+                    musicSrv.pausePlayer();
+                    btn_play.setBackgroundResource(R.drawable.play);
                 }
 
-                btn_play.setBackgroundResource(R.mipmap.pause);
+                else {
+                    btn_play.setBackgroundResource(R.drawable.pause);
+                }
 
                 //velocitat
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -229,12 +241,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
                    }
                 }
 
-                btn_play.setBackgroundResource(R.mipmap.pause);
+                btn_play.setBackgroundResource(R.drawable.pause);
 
             } else {
 
                 musicSrv.pausePlayer(); //pause
-                btn_play.setBackgroundResource(R.mipmap.play);
+                btn_play.setBackgroundResource(R.drawable.play);
 
             }
         }
@@ -254,7 +266,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             }
 
             if (!musicSrv.isPlaying()) {
-                btn_play.setBackgroundResource(R.mipmap.play);
+                btn_play.setBackgroundResource(R.drawable.play);
             }
         }
     }
@@ -289,6 +301,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     txt_loop_end.setText(generateMinutesandSeconds(duration));
 
                     //inicialitzar els valors i colocar la seekbar de la cançó a 0
+                    songSeekBar.setMin(0);
                     songSeekBar.setMax(duration);
                     setSongSeekBarListeners();
 
@@ -297,8 +310,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     loopSeekBar.setMaxValue(duration);
                     setLoopSeekBarListeners();
                 }
-            case 1:
-                btn_play.setBackgroundResource(R.mipmap.play);
+       /*     case 1:
+                btn_play.setBackgroundResource(R.drawable.play);*/
         }
     }
 
@@ -309,22 +322,22 @@ public class MusicPlayerActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 if (musicSrv.getStartPoint() > 0 || musicSrv.getEndPoint() < duration) { //si hi ha bucle
                     if (i < musicSrv.getStartPoint() || i > musicSrv.getEndPoint()) {
-                        //si es mou per fora del bucle
+                        //i es mou per fora del bucle
                         musicSrv.seekTo(musicSrv.getStartPoint());
                     }
 
                     else {
-                        if (b) {
+                        if (b) { //si el canvi ha estat fet per l'usuari
                             musicSrv.seekTo(i);
                         }
                     }
                 }
 
-                else {
-                    if (b) { //si el canvi ha estat fet per l'usuari
-                        musicSrv.seekTo(i);
+                    else {
+                        if (b) { //si el canvi ha estat fet per l'usuari
+                            musicSrv.seekTo(i);
+                        }
                     }
-                }
             }
 
             @Override

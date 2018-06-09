@@ -21,12 +21,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class MusicService extends Service implements
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
+        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
 
     private static final String PLAYER_PAUSEPLAY = "edu.upc.eseiaat.onloop.onloop.pause",
@@ -48,9 +50,16 @@ public class MusicService extends Service implements
     private TelephonyManager telephonyManager;
 
     @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        onDestroy();
+    }
+
+
+    @Override
     public void onDestroy() {
         stopForeground(true);
 
+        handler.removeCallbacks(runnable);
 
         if (phoneStateListener != null) {
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
@@ -69,6 +78,8 @@ public class MusicService extends Service implements
                 } else {
                     player.start();
                 }
+
+                showNotification();
             }
 
             if (intent.getAction().equals(PLAYER_STOP)) {
@@ -77,12 +88,9 @@ public class MusicService extends Service implements
             }
 
             if (intent.getAction().equals(CLOSE_NOTIF)) {
-                player.stop();
-                player.reset();
-                closeNotification();
+                player.pause();
 
-                //no sé si matar-ho tot com feia abans...
-                //android.os.Process.killProcess(android.os.Process.myPid());
+                closeNotification();
 
                 return Service.START_NOT_STICKY;
             }
@@ -157,11 +165,14 @@ public class MusicService extends Service implements
     }
 
     public int getCurrentPosition() {
-        return player.getCurrentPosition();
-    }
+        if (player != null) {
+            if (urisong != null) {
+                return player.getCurrentPosition();
+            }
+        }
 
-    public void resetPlayer() {
-        player.reset();
+        Toast.makeText(this, "Error a l'hora d'aconseguir la posició actual", Toast.LENGTH_SHORT).show();
+        return 0;
     }
 
     //service
@@ -190,18 +201,29 @@ public class MusicService extends Service implements
     }
 
     @Override
+    public void onCompletion(MediaPlayer mediaPlayer) {
+        if(player.getCurrentPosition()>0){
+            playSong();
+        }
+    }
+
+    @Override
     public void onPrepared(MediaPlayer mp) {
         //iniciar playback
         //si es crea el bucle abans de donar-li al play
         if (urisong != null) {
             if (getStartPoint() > 0 || getEndPoint() < duration){
-                mp.seekTo(getStartPoint());
-                mp.start(); }
+                mp.seekTo(getStartPoint()); }
+
+                mp.start();
+            }
 
             else {
-                mp.start(); }
+                Toast.makeText(this, "Error a l'hora d'inicialitzar la reproducció", Toast.LENGTH_SHORT).show();
+                mp.reset();
+
+            }
         }
-    }
 
     public void preparePlayer() {
         try {
@@ -289,9 +311,9 @@ public class MusicService extends Service implements
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
                                 // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
-                        .addAction(R.mipmap.pause, "pause", retreivePlaybackAction(0))
-                        .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
-                        .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
+                        .addAction(R.drawable.spause, "pause", retreivePlaybackAction(0))
+                        .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
+                        .addAction(R.drawable.scross, "exit", retreivePlaybackAction(2));
             } else {
                 builder.setContentIntent(pendInt)
                         .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -306,9 +328,9 @@ public class MusicService extends Service implements
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
                                 // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
-                        .addAction(R.mipmap.play, "pause", retreivePlaybackAction(0))
-                        .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
-                        .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
+                        .addAction(R.drawable.splay, "pause", retreivePlaybackAction(0))
+                        .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
+                        .addAction(R.drawable.scross, "exit", retreivePlaybackAction(2));
             }
         }
 
@@ -328,9 +350,9 @@ public class MusicService extends Service implements
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
                                 // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
-                        .addAction(R.mipmap.pause, "pause", retreivePlaybackAction(0))
-                        .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
-                        .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
+                        .addAction(R.drawable.spause, "pause", retreivePlaybackAction(0))
+                        .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
+                        .addAction(R.drawable.scross, "exit", retreivePlaybackAction(2));
             } else {
                 builder.setContentIntent(pendInt)
                         .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -345,9 +367,9 @@ public class MusicService extends Service implements
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
                                 // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
-                        .addAction(R.mipmap.play, "pause", retreivePlaybackAction(0))
-                        .addAction(R.mipmap.stop, "stop", retreivePlaybackAction(1))
-                        .addAction(R.mipmap.cross, "exit", retreivePlaybackAction(2));
+                        .addAction(R.drawable.splay, "pause", retreivePlaybackAction(0))
+                        .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
+                        .addAction(R.drawable.scross, "exit", retreivePlaybackAction(2));
             }
         }
 

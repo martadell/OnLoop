@@ -6,7 +6,6 @@ public class Song {
     private String title;
     private String artist;
     private String path;
-    private String album;
 
 
     public Song(String songTitle, String songArtist, String songPath, String songDuration) {
@@ -27,8 +26,4 @@ public class Song {
     public String getPath(){return path;}
 
     public String getDuration(){return duration;}
-
-    public String toString() {
-        return "title: " + getTitle() + " artist: " + getArtist()+"\n";
-    }
 }

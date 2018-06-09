@@ -83,16 +83,6 @@ public class MusicListActivity extends AppCompatActivity {
                         return false;
                     }
                 });
-                searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-                    @Override
-                    public void onViewDetachedFromWindow(View arg0) {
-                        // search was detached/closed
-                    }
-                    @Override
-                    public void onViewAttachedToWindow(View arg0) {
-                        // search was opened
-                    }
-                });
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -105,32 +95,27 @@ public class MusicListActivity extends AppCompatActivity {
         ContentResolver musicResolver = getContentResolver();
         //2. Obtenir l'URI els arxius de música del telèfon
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Uri albumUri = android.provider.MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
         //Crear un cursor per consultar els arxius
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
-        Cursor albumCursor = musicResolver.query(albumUri, null, null, null, null);
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
-
-            if (albumCursor != null && musicCursor.moveToFirst()) {
-                //get columns
-                int titleColumn = musicCursor.getColumnIndex
+            //get columns
+            int titleColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.TITLE);
-                int artistColumn = musicCursor.getColumnIndex
+            int artistColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.ARTIST);
-                int pathColumn = musicCursor.getColumnIndex
+            int pathColumn = musicCursor.getColumnIndex
                         (MediaStore.Audio.Media.DATA);
-                int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-                //add songs to list
-                do {
-                    String thisTitle = musicCursor.getString(titleColumn);
-                    String thisArtist = musicCursor.getString(artistColumn);
-                    String thisSongPath = musicCursor.getString(pathColumn);
-                    String thisSongDuration = musicCursor.getString(durationColumn);
-                    songList.add(new Song(thisTitle, thisArtist, thisSongPath, thisSongDuration));
-                }
-                while (musicCursor.moveToNext());
+            int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+            //add songs to list
+            do {
+                String thisTitle = musicCursor.getString(titleColumn);
+                String thisArtist = musicCursor.getString(artistColumn);
+                String thisSongPath = musicCursor.getString(pathColumn);
+                String thisSongDuration = musicCursor.getString(durationColumn);
+                songList.add(new Song(thisTitle, thisArtist, thisSongPath, thisSongDuration));
             }
+            while (musicCursor.moveToNext());
         }
     }
 
@@ -147,10 +132,6 @@ public class MusicListActivity extends AppCompatActivity {
             }
         }
 
-        Log.i("marta", "llista de cançons" + newSongList.toString());
-        Log.i("marta", "mida de la llista de cançons: " +Integer.toString(newSongList.size()));
-
-        //ordenar alfabèticament
         if (newSongList.size() > 0) {
             Collections.sort(newSongList, new Comparator<Song>() {
                 @Override
@@ -177,11 +158,7 @@ public class MusicListActivity extends AppCompatActivity {
             songduration = songList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
-        Log.i("marta", songname);
-        Log.i("marta", songpath);
-
         selectSong();
-
     }
 
     //enviar cançó a la mainactivity

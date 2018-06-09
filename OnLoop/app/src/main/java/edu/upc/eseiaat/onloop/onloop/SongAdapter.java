@@ -19,7 +19,7 @@ import java.util.List;
 public class SongAdapter extends BaseAdapter implements Filterable {
 
     private LayoutInflater inflater;
-    private NewFilter filter;
+    private SongFilter filter;
     private ArrayList<Song> original_songs, filtered_songs;
 
     public SongAdapter(Context c, ArrayList<Song> songs){
@@ -42,10 +42,9 @@ public class SongAdapter extends BaseAdapter implements Filterable {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        //map to song layout
         RelativeLayout songLay = (RelativeLayout)inflater.inflate
                 (R.layout.song, parent, false);
-        //get title and artist views
+
         TextView songView = songLay.findViewById(R.id.song_title);
         TextView artistView = songLay.findViewById(R.id.song_artist);
         //get song using position
@@ -62,12 +61,12 @@ public class SongAdapter extends BaseAdapter implements Filterable {
     @Override
     public Filter getFilter() {
         if (filter == null){
-            filter = new NewFilter();
+            filter = new SongFilter();
         }
         return filter;
     }
 
-    private class NewFilter extends Filter {
+    private class SongFilter extends Filter {
         @Override
         protected FilterResults performFiltering(CharSequence constraint) {
 
@@ -95,8 +94,6 @@ public class SongAdapter extends BaseAdapter implements Filterable {
                         }
                     });
                 }
-
-                Log.i("marta", "mida de la llista d'elements: " +Integer.toString(filtered.size()));
 
                 results.count = filtered.size();
                 results.values = filtered;

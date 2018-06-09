@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -26,8 +27,16 @@
             android:theme="@style/OnLoop"></activity>
         <service
             android:enabled="true"
-            android:name=".MusicService"/>
+            android:name=".MusicService"
+            android:stopWithTask="false"/>
+        <receiver android:name="MyBTReceiver">
+            <intent-filter>
+                <action android:name="android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED" />
+            </intent-filter>
+        </receiver>
     </application>
+
+
 
 
 </manifest>

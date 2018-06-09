@@ -142,7 +142,7 @@
             android:layout_height="40dp"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
-            android:background="@mipmap/play"
+            android:background="@drawable/play"
             android:onClick="click_play" />
 
         <ImageButton
@@ -152,7 +152,7 @@
             android:layout_alignTop="@+id/btn_play"
             android:layout_toEndOf="@+id/btn_play"
             android:layout_toRightOf="@+id/btn_play"
-            android:background="@mipmap/stop"
+            android:background="@drawable/stop"
             android:onClick="click_stop" />
 
 
