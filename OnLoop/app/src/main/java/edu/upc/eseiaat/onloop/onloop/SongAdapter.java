@@ -47,17 +47,13 @@ public class SongAdapter extends BaseAdapter implements Filterable {
 
         TextView songView = songLay.findViewById(R.id.song_title);
         TextView artistView = songLay.findViewById(R.id.song_artist);
-        //get song using position
         Song currSong = getItem(position);
-        //get title and artist strings
         songView.setText(currSong.getTitle());
         artistView.setText(currSong.getArtist());
-        //set position as tag
         songLay.setTag(position);
         return songLay;
     }
 
-    //Filtratge
     @Override
     public Filter getFilter() {
         if (filter == null){

@@ -36,22 +36,18 @@ public class MusicListActivity extends AppCompatActivity {
         songView = findViewById(R.id.song_list);
         songList = new ArrayList();
 
-        //obtenir les cançons
         getSongList();
 
-        //ordenar-les alfabèticament
         Collections.sort(songList, new Comparator<Song>() {
             public int compare(Song a, Song b) {
                 return a.getTitle().compareTo(b.getTitle());
             }
         });
 
-        //crear l'adaptador i inicialitzar-lo
         adapter = new SongAdapter(this, songList);
         songView.setAdapter(adapter);
     }
 
-    //menú lupa
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -63,7 +59,6 @@ public class MusicListActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-    //menú lupa (canvi de text)
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -89,17 +84,13 @@ public class MusicListActivity extends AppCompatActivity {
         }
     }
 
-    //obtenir la informació de la cançó
+
     public void getSongList() {
-        //1. instancia de content resolver
         ContentResolver musicResolver = getContentResolver();
-        //2. Obtenir l'URI els arxius de música del telèfon
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        //Crear un cursor per consultar els arxius
         Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
 
         if (musicCursor != null && musicCursor.moveToFirst()) {
-            //get columns
             int titleColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.TITLE);
             int artistColumn = musicCursor.getColumnIndex
@@ -107,7 +98,6 @@ public class MusicListActivity extends AppCompatActivity {
             int pathColumn = musicCursor.getColumnIndex
                         (MediaStore.Audio.Media.DATA);
             int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            //add songs to list
             do {
                 String thisTitle = musicCursor.getString(titleColumn);
                 String thisArtist = musicCursor.getString(artistColumn);
@@ -119,7 +109,6 @@ public class MusicListActivity extends AppCompatActivity {
         }
     }
 
-    //actualitzar la llista de cançons (al aplicar el filtre)
     private void updateSongList (String newText) {
         newSongList = new ArrayList<>();
 
@@ -142,7 +131,6 @@ public class MusicListActivity extends AppCompatActivity {
         }
     }
 
-    //al triar un item
     public void click_pick(View view){
         if (newSongList != null && newSongList.size() < songList.size()) { //si hi ha el filtre activat
             songname = newSongList.get(Integer.parseInt(view.getTag().toString())).getTitle();
@@ -161,7 +149,6 @@ public class MusicListActivity extends AppCompatActivity {
         selectSong();
     }
 
-    //enviar cançó a la mainactivity
     public void selectSong() {
         Intent data = new Intent();
         data.putExtra("songname", songname);

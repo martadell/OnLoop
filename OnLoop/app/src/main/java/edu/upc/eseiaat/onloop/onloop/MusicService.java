@@ -19,26 +19,19 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.widget.Toast;
 
 public class MusicService extends Service implements
-        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-
-
-    private static final String PLAYER_PAUSEPLAY = "edu.upc.eseiaat.onloop.onloop.pause",
-            PLAYER_STOP = "edu.upc.eseiaat.onloop.onloop.stop",
-            CLOSE_NOTIF = "edu.upc.eseiaat.onloop.onloop.exit";
+        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
 
     private MediaPlayer player;
     private Uri urisong;
     private String songname, songartist;
     private Integer duration;
+    private float speed;
     private IBinder musicBind = new MusicBinder();
     private int start, end;
     private Runnable runnable;
@@ -46,18 +39,25 @@ public class MusicService extends Service implements
 
     private static final int NOTIFICATION_ID = 2904;
     private static final String CHANNEL_ID = "edu.upc.eseiaat.onloop.onloop.MUSIC_CHANNEL_ID";
+    private static final String PLAYER_PAUSEPLAY = "edu.upc.eseiaat.onloop.onloop.pause",
+            PLAYER_STOP = "edu.upc.eseiaat.onloop.onloop.stop",
+            CLOSE_NOTIF = "edu.upc.eseiaat.onloop.onloop.exit";
+
     private PhoneStateListener phoneStateListener;
     private TelephonyManager telephonyManager;
 
     @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        onDestroy();
-    }
-
-
-    @Override
     public void onDestroy() {
         stopForeground(true);
+
+        if (player.isPlaying()) {
+            player. stop();
+        }
+
+        player.reset();
+        player.release();
+
+        closeNotification();
 
         handler.removeCallbacks(runnable);
 
@@ -91,21 +91,16 @@ public class MusicService extends Service implements
                 player.pause();
 
                 closeNotification();
-
-                return Service.START_NOT_STICKY;
             }
         }
 
-        return Service.START_STICKY;
+        return Service.START_NOT_STICKY;
     }
 
     @Override
     public void onCreate(){
-        //crear el servei
         super.onCreate();
-        //crear el reproductor
         player = new MediaPlayer();
-        //crear el handler (per reproduir el bucle)
         handler = new Handler();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -116,13 +111,57 @@ public class MusicService extends Service implements
         callStateListener();
 
         player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        //listener per quan el mediaplayer s'hagi preparat
         player.setOnPreparedListener(this);
-        //listener per si hi ha algún error
         player.setOnErrorListener(this);
     }
 
-    //funcions del reproductor
+    public class MusicBinder extends Binder {
+        MusicService getService() {
+            return MusicService.this;
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return musicBind;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent){
+        showNotification();
+        return false;
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        if (urisong != null) {
+            if (getStartPoint() > 0 || getEndPoint() < duration){
+                mp.seekTo(getStartPoint()); }
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    SetSpeedValue(1);
+                    mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(speed));
+            }
+
+            mp.start();
+        }
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        playSong();
+        return false;
+    }
+
+    public void preparePlayer() {
+        try {
+            player.prepareAsync();
+        } catch (Exception e) {
+            player.reset();
+        }
+    }
+
     public void setSongParams(String songname, String songartist, Uri urisong, Integer songduration) {
         this.urisong = urisong;
         this.songname = songname;
@@ -151,8 +190,8 @@ public class MusicService extends Service implements
     }
 
     public void replaySongFrom(int pos) {
-        if (getStartPoint() > 0 || getEndPoint() < duration) {
-            if (player.getCurrentPosition() <= start || player.getCurrentPosition() >= end) {
+        if (getStartPoint() > 0 || getEndPoint() < getDuration()) {
+            if (player.getCurrentPosition() <= getStartPoint() || player.getCurrentPosition() >= getEndPoint()) {
                 playLoop();
             }
         }
@@ -165,84 +204,16 @@ public class MusicService extends Service implements
     }
 
     public int getCurrentPosition() {
-        if (player != null) {
-            if (urisong != null) {
-                return player.getCurrentPosition();
-            }
-        }
-
-        Toast.makeText(this, "Error a l'hora d'aconseguir la posició actual", Toast.LENGTH_SHORT).show();
-        return 0;
+        return player.getCurrentPosition();
     }
 
-    //service
-    public class MusicBinder extends Binder {
-        MusicService getService() {
-            return MusicService.this;
-        }
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-            return musicBind;
-    }
-
-    //al desconectar el servei ssurt la notificació
-    @Override
-    public boolean onUnbind(Intent intent){
-        showNotification();
-            return false;
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        mediaPlayer.reset();
-        return false;
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        if(player.getCurrentPosition()>0){
-            playSong();
-        }
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        //iniciar playback
-        //si es crea el bucle abans de donar-li al play
-        if (urisong != null) {
-            if (getStartPoint() > 0 || getEndPoint() < duration){
-                mp.seekTo(getStartPoint()); }
-
-                mp.start();
-            }
-
-            else {
-                Toast.makeText(this, "Error a l'hora d'inicialitzar la reproducció", Toast.LENGTH_SHORT).show();
-                mp.reset();
-
-            }
-        }
-
-    public void preparePlayer() {
-        try {
-            player.prepareAsync();
-        } catch (Exception e) {
-            //Handle exception
-            player.release();
-            Log.i("marta", "error");
-        }
-    }
-
-    //reproduir bucle
     private void playLoop() {
 
         runnable = new Runnable() {
             @Override
             public void run() {
-                if (getCurrentPosition() < getStartPoint() || getCurrentPosition() > getEndPoint()) {
-                    seekTo(getStartPoint());
+                if (player.getCurrentPosition() < getStartPoint() || player.getCurrentPosition() > getEndPoint()) {
+                    player.seekTo(getStartPoint());
                 }
                 playLoop();
             }
@@ -250,24 +221,21 @@ public class MusicService extends Service implements
         handler.postDelayed(runnable, 500);
     }
 
-    //velocitat
     public void changeplayerSpeed(float speed) {
-        // this checks on API 23 and up
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (urisong != null) {
                 if (player != null) {
+                    SetSpeedValue(speed);
                     player.setPlaybackParams(player.getPlaybackParams().setSpeed(speed));
                 }
             }
         }
     }
 
-    //notificació
     public void showNotification() {
         if (urisong != null) {
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
-            // notificationId is a unique int for each notification that you must define
             notificationManager.notify(NOTIFICATION_ID, buildNotification());
         }
     }
@@ -304,12 +272,11 @@ public class MusicService extends Service implements
                         .setShowWhen(false)
                         .setContentTitle(songname)
                         .setContentText(songartist)
-                        .setSubText("Now playing")
+                        .setSubText(getString(R.string.now_playing))
                         .setChannelId(CHANNEL_ID)
                         .setOngoing(true)
                         .setAutoCancel(true)
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
-                                // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
                         .addAction(R.drawable.spause, "pause", retreivePlaybackAction(0))
                         .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
@@ -321,12 +288,11 @@ public class MusicService extends Service implements
                         .setShowWhen(false)
                         .setContentTitle(songname)
                         .setContentText(songartist)
-                        .setSubText("Now playing")
+                        .setSubText(getString(R.string.now_playing))
                         .setChannelId(CHANNEL_ID)
                         .setOngoing(true)
                         .setAutoCancel(true)
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
-                                // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
                         .addAction(R.drawable.splay, "pause", retreivePlaybackAction(0))
                         .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
@@ -343,12 +309,11 @@ public class MusicService extends Service implements
                         .setShowWhen(false)
                         .setContentTitle(songname)
                         .setContentText(songartist)
-                        .setSubText("Now playing")
+                        .setSubText(getString(R.string.now_playing))
                         .setOngoing(true)
                         .setPriority(Notification.PRIORITY_HIGH)
                         .setAutoCancel(true)
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
-                                // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
                         .addAction(R.drawable.spause, "pause", retreivePlaybackAction(0))
                         .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
@@ -365,7 +330,6 @@ public class MusicService extends Service implements
                         .setPriority(Notification.PRIORITY_HIGH)
                         .setAutoCancel(true)
                         .setStyle(new Notification.MediaStyle().setMediaSession(mediaSession.getSessionToken())
-                                // Show our playback controls in the compat view
                                 .setShowActionsInCompactView(0, 1, 2))
                         .addAction(R.drawable.splay, "pause", retreivePlaybackAction(0))
                         .addAction(R.drawable.sstop, "stop", retreivePlaybackAction(1))
@@ -383,20 +347,16 @@ public class MusicService extends Service implements
         final ComponentName serviceName = new ComponentName(this, MusicService.class);
         switch (which) {
             case 0:
-                //pause
-
                 action = new Intent(PLAYER_PAUSEPLAY);
                 action.setComponent(serviceName);
                 pendingIntent = PendingIntent.getService(this, 0, action, PendingIntent.FLAG_CANCEL_CURRENT);
                 return pendingIntent;
             case 1:
-                // stop
                 action = new Intent(PLAYER_STOP);
                 action.setComponent(serviceName);
                 pendingIntent = PendingIntent.getService(this, 1, action, PendingIntent.FLAG_CANCEL_CURRENT);
                 return pendingIntent;
             case 2:
-                //tancar
                 action = new Intent(CLOSE_NOTIF);
                 action.setComponent(serviceName);
                 pendingIntent = PendingIntent.getService(this, 2, action, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -414,10 +374,7 @@ public class MusicService extends Service implements
         }
     }
 
-    //Per android 8.0 o més
     private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = getString(R.string.channel_name);
             String description = getString(R.string.channel_description);
@@ -432,7 +389,40 @@ public class MusicService extends Service implements
         }
     }
 
-    //getters i setters
+    private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            player.pause();
+            showNotification();
+
+        }
+    };
+
+    private void registerBecomingNoisyReceiver() {
+        IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+        registerReceiver(becomingNoisyReceiver, intentFilter);
+
+    }
+
+    //trucades
+    private void callStateListener() {
+        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        phoneStateListener = new PhoneStateListener() {
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                switch (state) {
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        if (player != null) {
+                            player.pause();
+                            showNotification();
+                        }
+                        break;
+                }
+            }
+        };
+        //registrar el listener amb el telephony manager i "escoltar" canvis
+        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+    }
 
     public boolean isPlaying() {
         return player.isPlaying();
@@ -474,49 +464,12 @@ public class MusicService extends Service implements
         return urisong;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public float getSpeed() {
-        return player.getPlaybackParams().getSpeed();
+        return speed;
     }
 
-    //auriculars
-    private BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            player.pause();
-            //    falta canviar icona
-
-        }
-    };
-
-    private void registerBecomingNoisyReceiver() {
-        //register after getting audio focus
-        IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-        registerReceiver(becomingNoisyReceiver, intentFilter);
-    }
-
-    //trucades
-    private void callStateListener() {
-        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        phoneStateListener = new PhoneStateListener() {
-            @Override
-            public void onCallStateChanged(int state, String incomingNumber) {
-                switch (state) {
-                    //si al menys hi h una trucada durant la reproducció
-                    case TelephonyManager.CALL_STATE_OFFHOOK:
-                    case TelephonyManager.CALL_STATE_RINGING:
-                        if (player != null) {
-                            player.pause();
-                       //    falta canviar icona
-                        }
-                        break;
-                    case TelephonyManager.CALL_STATE_IDLE:
-                        break;
-                }
-            }
-        };
-        //registrar el listener amb el telephony manager i "escoltar" canvis
-        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+    private void SetSpeedValue(float speed) {
+        this.speed = speed;
     }
 
 }
