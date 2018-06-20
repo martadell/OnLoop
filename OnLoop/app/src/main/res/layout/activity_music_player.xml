@@ -107,8 +107,8 @@
         app:bar_color="@color/onLoopPrimaryTransparent"
         app:bar_highlight_color="@color/onLoopPrimaryDarkTransparent"
         app:gap="0.5"
-        app:left_thumb_image="@android:drawable/radiobutton_off_background"
-        app:right_thumb_image="@android:drawable/radiobutton_off_background" />
+        app:left_thumb_image="@drawable/sleft"
+        app:right_thumb_image="@drawable/sright" />
 
 
     <TextView
@@ -140,8 +140,6 @@
             android:id="@+id/btn_play"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
             android:background="@drawable/play"
             android:onClick="click_play" />
 
@@ -149,9 +147,6 @@
             android:id="@+id/btn_stop"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_alignTop="@+id/btn_play"
-            android:layout_toEndOf="@+id/btn_play"
-            android:layout_toRightOf="@+id/btn_play"
             android:background="@drawable/stop"
             android:onClick="click_stop" />
 

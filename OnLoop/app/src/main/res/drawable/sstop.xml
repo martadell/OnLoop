@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <path
+        android:fillColor="#000"
+        android:name="Capa 1"
+        android:pathData="m41 162c0 0 -3.76 -0.16 -7 -3c-3.24 -2.84 -4 -9 -4 -9v-109c0 0 1.36 -5.77 4 -8c2.64 -2.23 7 -3 7 -3h111c0 0 3.96 -0.24 7 3c3.04 3.24 3 8 3 8v109c0 0 -0.57 5.96 -3 9c-2.43 3.04 -7 3 -7 3h-111z" />
+</vector>
