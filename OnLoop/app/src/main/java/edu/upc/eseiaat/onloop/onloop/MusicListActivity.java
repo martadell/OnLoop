@@ -23,7 +23,7 @@ public class MusicListActivity extends AppCompatActivity {
     private ArrayList<Song> songList;
     private ArrayList<Song> newSongList;
     private ListView songView;
-    private String songname, songpath, songartist, songduration;
+    private String songname, songpath, songartist;
     private SearchView searchView;
     private MenuItem searchitem;
     private SongAdapter adapter;
@@ -88,25 +88,29 @@ public class MusicListActivity extends AppCompatActivity {
     public void getSongList() {
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, MediaStore.Audio.Media.TITLE);
 
-        if (musicCursor != null && musicCursor.moveToFirst()) {
-            int titleColumn = musicCursor.getColumnIndex
+            if(musicCursor!=null && musicCursor.moveToFirst()) {
+                //get columns
+                int titleColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.TITLE);
-            int artistColumn = musicCursor.getColumnIndex
+                int artistColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.ARTIST);
-            int pathColumn = musicCursor.getColumnIndex
+                int pathColumn = musicCursor.getColumnIndex
                         (MediaStore.Audio.Media.DATA);
-            int durationColumn = musicCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            do {
-                String thisTitle = musicCursor.getString(titleColumn);
-                String thisArtist = musicCursor.getString(artistColumn);
-                String thisSongPath = musicCursor.getString(pathColumn);
-                String thisSongDuration = musicCursor.getString(durationColumn);
-                songList.add(new Song(thisTitle, thisArtist, thisSongPath, thisSongDuration));
+                //add songs to list
+                do {
+                    String thisTitle = musicCursor.getString(titleColumn);
+                    String thisArtist = musicCursor.getString(artistColumn);
+                    String thisSongPath = musicCursor.getString(pathColumn);
+                    songList.add(new Song(thisTitle, thisArtist, thisSongPath));
+
+                    Log.i("Marta", "titol: " + thisTitle + "\n" + "artista: " + thisArtist + "\n" + "path: " + thisSongPath);
+
+                }
+                while (musicCursor.moveToNext());
+                musicCursor.close();
             }
-            while (musicCursor.moveToNext());
-        }
     }
 
     private void updateSongList (String newText) {
@@ -136,14 +140,12 @@ public class MusicListActivity extends AppCompatActivity {
             songname = newSongList.get(Integer.parseInt(view.getTag().toString())).getTitle();
             songartist = newSongList.get(Integer.parseInt(view.getTag().toString())).getArtist();
             songpath = newSongList.get(Integer.parseInt(view.getTag().toString())).getPath();
-            songduration = newSongList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
         else {
             songname = songList.get(Integer.parseInt(view.getTag().toString())).getTitle();
             songartist = songList.get(Integer.parseInt(view.getTag().toString())).getArtist();
             songpath = songList.get(Integer.parseInt(view.getTag().toString())).getPath();
-            songduration = songList.get(Integer.parseInt(view.getTag().toString())).getDuration();
         }
 
         selectSong();
@@ -154,7 +156,6 @@ public class MusicListActivity extends AppCompatActivity {
         data.putExtra("songname", songname);
         data.putExtra("songartist", songartist);
         data.putExtra("songpath", songpath);
-        data.putExtra("songduration", songduration);
         setResult(RESULT_OK, data);
         finish();
     }

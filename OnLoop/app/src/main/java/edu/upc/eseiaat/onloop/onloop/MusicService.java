@@ -24,6 +24,8 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import java.io.IOException;
+
 public class MusicService extends Service implements
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener {
 
@@ -36,6 +38,7 @@ public class MusicService extends Service implements
     private int start, end;
     private Runnable runnable;
     private Handler handler;
+    private boolean binding = false;
 
     private static final int NOTIFICATION_ID = 2904;
     private static final String CHANNEL_ID = "edu.upc.eseiaat.onloop.onloop.MUSIC_CHANNEL_ID";
@@ -85,6 +88,7 @@ public class MusicService extends Service implements
             if (intent.getAction().equals(PLAYER_STOP)) {
                 player.pause();
                 player.seekTo(getStartPoint());
+                showNotification();
             }
 
             if (intent.getAction().equals(CLOSE_NOTIF)) {
@@ -123,18 +127,23 @@ public class MusicService extends Service implements
 
     @Override
     public IBinder onBind(Intent intent) {
+        binding = true;
         return musicBind;
     }
 
     @Override
     public boolean onUnbind(Intent intent){
         showNotification();
+        binding = false;
         return false;
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
         if (urisong != null) {
+            duration = mp.getDuration();
+            setEndPoint(duration);
+
             if (getStartPoint() > 0 || getEndPoint() < duration){
                 mp.seekTo(getStartPoint()); }
 
@@ -143,14 +152,12 @@ public class MusicService extends Service implements
                     SetSpeedValue(1);
                     mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(speed));
             }
-
-            mp.start();
         }
     }
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        playSong();
+            onCreate();
         return false;
     }
 
@@ -162,27 +169,26 @@ public class MusicService extends Service implements
         }
     }
 
-    public void setSongParams(String songname, String songartist, Uri urisong, Integer songduration) {
+    public void setSongParams(String songname, String songartist, Uri urisong) {
         this.urisong = urisong;
         this.songname = songname;
         this.songartist = songartist;
-        duration = songduration;
 
-        setEndPoint(duration);
-    }
-
-    public void playSong() {
         player.reset();
 
-        try{
-            player.setDataSource(getApplicationContext(), urisong);
-            player.setLooping(true);
-        }
-        catch(Exception e){
+        try {
+            player.setDataSource(getApplicationContext(), this.urisong);
+        } catch (IOException e) {
             Log.e("MUSIC SERVICE", "Error setting data source", e);
         }
 
+        player.setLooping(true);
         preparePlayer();
+    }
+
+    public void playSong() {
+        onPrepared(player);
+        player.start();
     }
 
     public void pausePlayer() {
@@ -393,7 +399,9 @@ public class MusicService extends Service implements
         @Override
         public void onReceive(Context context, Intent intent) {
             player.pause();
-            showNotification();
+            if (!binding) {
+                showNotification();
+            }
 
         }
     };
@@ -404,7 +412,6 @@ public class MusicService extends Service implements
 
     }
 
-    //trucades
     private void callStateListener() {
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         phoneStateListener = new PhoneStateListener() {
@@ -414,13 +421,13 @@ public class MusicService extends Service implements
                     case TelephonyManager.CALL_STATE_RINGING:
                         if (player != null) {
                             player.pause();
-                            showNotification();
+                            if (!binding)
+                                showNotification();
                         }
                         break;
                 }
             }
         };
-        //registrar el listener amb el telephony manager i "escoltar" canvis
         telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
     }
 

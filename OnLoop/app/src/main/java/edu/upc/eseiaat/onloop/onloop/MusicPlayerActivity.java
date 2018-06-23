@@ -48,17 +48,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
         if (musicSrv != null) {
             unbindService(musicConnection);
             handler.removeCallbacks(runnable);
+            musicSrv.showNotification();
         }
 
         super.onDestroy();
-    }
-
-    @Override
-    protected void onStop() {
-        if (musicSrv != null) {
-            musicSrv.showNotification();
-        }
-        super.onStop();
     }
 
     @Override
@@ -88,22 +81,17 @@ public class MusicPlayerActivity extends AppCompatActivity {
         txt_speed_value = findViewById(R.id.txt_speed_value);
 
         btn_explore = findViewById(R.id.viewSongInfo);
-
+        btn_explore.setLongClickable(true);
         btn_explore.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-
                 performFileSearch();
-                return false;
+                return true;
             }
         });
 
         handler = new Handler();
 
-
-        if (isFirstTime()) {
-            txt_song.setText(R.string.nothing_playing);
-        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 speedSeekBar.setMax(10);
@@ -148,7 +136,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
             startService(playIntent);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             }
+
+        if (isFirstTime()) {
+        txt_song.setText(R.string.nothing_playing);
+
         }
+    }
 
     private ServiceConnection musicConnection = new ServiceConnection(){
 
@@ -173,8 +166,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
 
                 setLoopSeekBarListeners();
-
                 setSongSeekBarListeners();
+
                 playCycle();
 
                 if (!musicSrv.isPlaying()) {
@@ -212,8 +205,19 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
             if (!musicSrv.isPlaying()) {
 
-                if (musicSrv.getCurrentPosition() == 0) {
+                if (songSeekBar.getProgress() == 0) {
                     musicSrv.playSong();
+
+                    if (musicSrv.getDuration() != null) {
+                        duration = musicSrv.getDuration();
+                        txt_loop_end.setText(generateMinutesandSeconds(duration));
+                        songSeekBar.setMax(duration);
+                        loopSeekBar.setMinValue(0);
+                        loopSeekBar.setMinStartValue(0);
+                        loopSeekBar.setMaxValue(duration);
+                        loopSeekBar.setMaxStartValue(0);
+                    }
+
                 } else {
                     if (songSeekBar.getProgress() != musicSrv.getCurrentPosition()) {
                         musicSrv.replaySongFrom(songSeekBar.getProgress());
@@ -267,29 +271,25 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     String songname = data.getStringExtra("songname");
                     String songartist = data.getStringExtra("songartist");
                     String songpath = data.getStringExtra("songpath");
-                    String songduration = data.getStringExtra("songduration");
 
                     txt_song.setText(songname);
                     txt_artist.setText(songartist);
                     urisong = Uri.parse(songpath);
-                    duration = Integer.valueOf(songduration);
 
-                    musicSrv.setSongParams(songname, songartist, urisong, duration);
+                    musicSrv.setSongParams(songname, songartist, urisong);
 
-                    txt_loop_end.setText(generateMinutesandSeconds(duration));
-
-                    songSeekBar.setMax(duration);
-                    setSongSeekBarListeners();
-
-                    loopSeekBar.setMinValue(0);
-                    loopSeekBar.setMaxValue(duration);
-                    setLoopSeekBarListeners();
-
-                    if(musicSrv.isPlaying()) {
-                        musicSrv.pausePlayer();
-                        musicSrv.seekTo(0);
-                        btn_play.setBackgroundResource(R.drawable.play);
+                    if (musicSrv.getDuration() != null) {
+                        duration = musicSrv.getDuration();
+                        txt_loop_end.setText(generateMinutesandSeconds(duration));
+                        songSeekBar.setMax(duration);
+                        loopSeekBar.setMinValue(0);
+                        loopSeekBar.setMinStartValue(0);
+                        loopSeekBar.setMaxValue(duration);
+                        loopSeekBar.setMaxStartValue(0);
                     }
+
+                    setSongSeekBarListeners();
+                    setLoopSeekBarListeners();
                 }
         }
     }
@@ -349,6 +349,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
         runnable = new Runnable() {
             @Override
             public void run() {
+                if (!musicSrv.isPlaying()) {
+                        btn_play.setBackgroundResource(R.drawable.play);
+                }
+
                 songSeekBar.setProgress(musicSrv.getCurrentPosition());
                 txt_song_timing.setText(generateMinutesandSeconds(musicSrv.getCurrentPosition()));
                 playCycle();
@@ -388,7 +392,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
             if (firstTime) {
                 SharedPreferences.Editor editor = mPreferences.edit();
                 editor.putBoolean("firstTime", false);
-                editor.commit();
+                editor.apply();
             }
         }
         return firstTime;

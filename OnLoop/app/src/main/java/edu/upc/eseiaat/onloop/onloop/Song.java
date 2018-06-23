@@ -8,11 +8,10 @@ public class Song {
     private String path;
 
 
-    public Song(String songTitle, String songArtist, String songPath, String songDuration) {
+    public Song(String songTitle, String songArtist, String songPath) {
         title=songTitle;
         artist=songArtist;
         path=songPath;
-        duration = songDuration;
     }
 
     public String getTitle(){
@@ -24,6 +23,4 @@ public class Song {
     }
 
     public String getPath(){return path;}
-
-    public String getDuration(){return duration;}
 }
