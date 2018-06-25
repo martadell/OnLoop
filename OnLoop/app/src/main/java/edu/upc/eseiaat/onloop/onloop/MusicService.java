@@ -258,17 +258,13 @@ public class MusicService extends Service implements
 
         Notification.Builder builder = new Notification.Builder(this);
 
-        // Create a new MediaSession
         final MediaSession mediaSession = new MediaSession(this, "MediaSession");
-        // Update the current metadata
         mediaSession.setMetadata(new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, songartist)
                 .putString(MediaMetadata.METADATA_KEY_MEDIA_URI, urisong.toString())
                 .putString(MediaMetadata.METADATA_KEY_TITLE, songname)
                 .build());
-        // Indicate you're ready to receive media commands
         mediaSession.setActive(true);
-        // Indicate you want to receive transport controls via your Callback
         mediaSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

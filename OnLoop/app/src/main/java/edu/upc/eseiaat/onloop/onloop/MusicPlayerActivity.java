@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -42,7 +41,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private boolean binding=false, ready = false;
     private Handler handler, dhandler;
     private Runnable runnable, drunnable;
-    private Boolean firstTime = null;
 
     @Override
     protected void onDestroy() {
@@ -50,7 +48,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             unbindService(musicConnection);
             handler.removeCallbacks(runnable);
         }
-
         super.onDestroy();
     }
 
@@ -81,9 +78,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     != PackageManager.PERMISSION_GRANTED) {
 
                 requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WAKE_LOCK, Manifest.permission.READ_PHONE_STATE},1);
-
-                return;
-            }}
+            }
+        }
 
         btn_play = findViewById(R.id.btn_play);
         txt_song = findViewById(R.id.txt_song);
@@ -107,8 +103,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
             }
         });
 
-        handler = new Handler();
+        checkFirstRun();
 
+        handler = new Handler();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 speedSeekBar.setMax(10);
@@ -144,17 +141,12 @@ public class MusicPlayerActivity extends AppCompatActivity {
             txt_speed_value.setVisibility(View.GONE);
         }
 
-
         if(!binding){
             playIntent = new Intent(this, MusicService.class);
             startService(playIntent);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             }
 
-        if (isFirstTime()) {
-        txt_song.setText(R.string.nothing_playing);
-
-        }
     }
 
     private ServiceConnection musicConnection = new ServiceConnection(){
@@ -308,7 +300,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         handler.postDelayed(drunnable, 50);
     }
 
-    //Listeners seekbars
     private void setSongSeekBarListeners() {
         songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -403,16 +394,25 @@ public class MusicPlayerActivity extends AppCompatActivity {
         return i;
     }
 
-    private boolean isFirstTime() {
-        if (firstTime == null) {
-            SharedPreferences mPreferences = this.getSharedPreferences("first_time", Context.MODE_PRIVATE);
-            firstTime = mPreferences.getBoolean("firstTime", true);
-            if (firstTime) {
-                SharedPreferences.Editor editor = mPreferences.edit();
-                editor.putBoolean("firstTime", false);
-                editor.apply();
-            }
+    private void checkFirstRun() {
+
+        final String PREFS_NAME = "MyPrefsFile";
+        final String PREF_VERSION_CODE_KEY = "version_code";
+        final int DOESNT_EXIST = -1;
+
+        int currentVersionCode = BuildConfig.VERSION_CODE;
+
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int savedVersionCode = prefs.getInt(PREF_VERSION_CODE_KEY, DOESNT_EXIST);
+
+        if (currentVersionCode == savedVersionCode) {
+            return;
+
+        } else if (savedVersionCode == DOESNT_EXIST || currentVersionCode > savedVersionCode) {
+            txt_song.setText(R.string.nothing_playing);
         }
-        return firstTime;
+
+        prefs.edit().putInt(PREF_VERSION_CODE_KEY, currentVersionCode).apply();
     }
+
 }
