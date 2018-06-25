@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarChangeListener;
 import com.crystal.crystalrangeseekbar.interfaces.OnRangeSeekbarFinalValueListener;
@@ -38,9 +39,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private Integer duration =0;
     private MusicService musicSrv;
     private Intent playIntent;
-    private boolean binding=false;
-    private Handler handler;
-    private Runnable runnable;
+    private boolean binding=false, ready = false;
+    private Handler handler, dhandler;
+    private Runnable runnable, drunnable;
     private Boolean firstTime = null;
 
     @Override
@@ -48,10 +49,26 @@ public class MusicPlayerActivity extends AppCompatActivity {
         if (musicSrv != null) {
             unbindService(musicConnection);
             handler.removeCallbacks(runnable);
-            musicSrv.showNotification();
         }
 
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStop() {
+        if (musicSrv != null) {
+            musicSrv.showNotification();
+        }
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        if (musicSrv != null) {
+            musicSrv.closeNotification();
+        }
+        super.onResume();
     }
 
     @Override
@@ -107,9 +124,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
                         else {
                             txt_speed_value.setText("1.4");
                         }
-
-                        btn_play.setBackgroundResource(R.drawable.pause);
-                        Log.i("marta", "speed activity " + Float.toString(getConvertedFloatValue(i)));
                     }
 
                     @Override
@@ -170,14 +184,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                 playCycle();
 
-                if (!musicSrv.isPlaying()) {
-                    btn_play.setBackgroundResource(R.drawable.play);
-                }
-
-                else {
-                    btn_play.setBackgroundResource(R.drawable.pause);
-                }
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         float speed = musicSrv.getSpeed();
                         speedSeekBar.setProgress(getConvertedIntegerValue(speed));
@@ -199,7 +205,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
     public void click_play(View view){
 
-        if (urisong != null) {
+        if (urisong != null && ready) {
 
             playCycle();
 
@@ -207,38 +213,25 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                 if (songSeekBar.getProgress() == 0) {
                     musicSrv.playSong();
-
-                    if (musicSrv.getDuration() != null) {
-                        duration = musicSrv.getDuration();
-                        txt_loop_end.setText(generateMinutesandSeconds(duration));
-                        songSeekBar.setMax(duration);
-                        loopSeekBar.setMinValue(0);
-                        loopSeekBar.setMinStartValue(0);
-                        loopSeekBar.setMaxValue(duration);
-                        loopSeekBar.setMaxStartValue(0);
-                    }
-
                 } else {
                     if (songSeekBar.getProgress() != musicSrv.getCurrentPosition()) {
                         musicSrv.replaySongFrom(songSeekBar.getProgress());
+                    } else {
+                        musicSrv.replaySongFrom(musicSrv.getCurrentPosition());
                     }
 
-                    else {
-                        musicSrv.replaySongFrom(musicSrv.getCurrentPosition());
-                   }
                 }
-
-                btn_play.setBackgroundResource(R.drawable.pause);
-
-            } else {
-
-                musicSrv.pausePlayer();
-                btn_play.setBackgroundResource(R.drawable.play);
-
             }
-        }
 
-    }
+            else {
+                    musicSrv.pausePlayer();
+                }
+            }
+
+            else {
+            if (!ready) Toast.makeText(musicSrv, R.string.Loading, Toast.LENGTH_SHORT).show();
+        }
+        }
 
     public void click_stop(View view) {
         if (urisong != null) {
@@ -251,14 +244,11 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 musicSrv.pausePlayer();
                 musicSrv.seekTo(0);
             }
-
-            if (!musicSrv.isPlaying()) {
-                btn_play.setBackgroundResource(R.drawable.play);
-            }
         }
     }
 
     public void performFileSearch() {
+        ready = false;
         Intent intent = new Intent(this,MusicListActivity.class);
         startActivityForResult(intent, 0);
     }
@@ -278,20 +268,44 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                     musicSrv.setSongParams(songname, songartist, urisong);
 
-                    if (musicSrv.getDuration() != null) {
-                        duration = musicSrv.getDuration();
-                        txt_loop_end.setText(generateMinutesandSeconds(duration));
-                        songSeekBar.setMax(duration);
-                        loopSeekBar.setMinValue(0);
-                        loopSeekBar.setMinStartValue(0);
-                        loopSeekBar.setMaxValue(duration);
-                        loopSeekBar.setMaxStartValue(0);
+                    if (musicSrv.isPlaying()) {
+                        musicSrv.pausePlayer();
+                        musicSrv.seekTo(0);
                     }
 
                     setSongSeekBarListeners();
                     setLoopSeekBarListeners();
+
+                    dhandler = new Handler();
+                    changeDuration();
                 }
         }
+    }
+
+    private void changeDuration() {
+        drunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (musicSrv.getDuration() != null) {
+                    if (duration == 0 || duration != musicSrv.getDuration()) {
+                        duration = musicSrv.getDuration();
+                        txt_loop_end.setText(generateMinutesandSeconds(duration));
+                        songSeekBar.setMax(duration);
+                        songSeekBar.setProgress(0);
+                        musicSrv.setStartPoint(0);
+                        musicSrv.setEndPoint(duration);
+                        loopSeekBar.setMinStartValue(0).setMaxStartValue(duration).apply();
+                        loopSeekBar.setMinValue(0).setMaxValue(duration).apply();
+
+                        dhandler.removeCallbacks(drunnable);
+                        ready = true;
+                    }
+                }else {
+                   changeDuration();
+                }
+            }
+        };
+        handler.postDelayed(drunnable, 50);
     }
 
     //Listeners seekbars
@@ -351,6 +365,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
             public void run() {
                 if (!musicSrv.isPlaying()) {
                         btn_play.setBackgroundResource(R.drawable.play);
+                }
+
+                else {
+                    btn_play.setBackgroundResource(R.drawable.pause);
                 }
 
                 songSeekBar.setProgress(musicSrv.getCurrentPosition());

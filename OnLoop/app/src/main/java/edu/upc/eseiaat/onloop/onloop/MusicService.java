@@ -145,12 +145,13 @@ public class MusicService extends Service implements
             setEndPoint(duration);
 
             if (getStartPoint() > 0 || getEndPoint() < duration){
-                mp.seekTo(getStartPoint()); }
+                mp.seekTo(getStartPoint());}
 
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     SetSpeedValue(1);
                     mp.setPlaybackParams(mp.getPlaybackParams().setSpeed(speed));
+                    if (mp.isPlaying())mp.pause();
             }
         }
     }
@@ -170,24 +171,26 @@ public class MusicService extends Service implements
     }
 
     public void setSongParams(String songname, String songartist, Uri urisong) {
-        this.urisong = urisong;
-        this.songname = songname;
-        this.songartist = songartist;
+        if (player != null) {
+            player.stop();
+            player.reset();
 
-        player.reset();
+            this.urisong = urisong;
+            this.songname = songname;
+            this.songartist = songartist;
 
-        try {
-            player.setDataSource(getApplicationContext(), this.urisong);
-        } catch (IOException e) {
-            Log.e("MUSIC SERVICE", "Error setting data source", e);
+            try {
+                player.setDataSource(this.urisong.getPath());
+            } catch (IOException e) {
+                Log.e("MUSIC SERVICE", "Error setting data source", e);
+            }
+
+            player.setLooping(true);
+            preparePlayer();
         }
-
-        player.setLooping(true);
-        preparePlayer();
     }
 
     public void playSong() {
-        onPrepared(player);
         player.start();
     }
 

@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">OnLoop</string>
-    <string name="search">Search</string>
     <string name="nothing_playing">Longclick to choose a song to listen</string>
     <string name="speed">Speed</string>
     <string name="channel_name" translatable="false">OnLoop_Channel_ID</string>
@@ -8,4 +7,5 @@
     <string name="pause" translatable="false">Pause</string>
     <string name="stop" translatable="false">Stop</string>
     <string name="now_playing">Now playing</string>
+    <string name="Loading">Music Player loading, please try again</string>
 </resources>

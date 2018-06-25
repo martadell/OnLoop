@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="explore">Seleccionar cançó</string>
-    <string name="clear">Resetejar</string>
-    <string name="search">Cerca</string>
     <string name="nothing_playing">Mantén apretat i escull una cançó primer</string>
-    <string name="clear_player">Netejar reproductor</string>
-    <string name="clear_player_message">Estàs segur de que vols resetejar tots els valors?</string>
-    <string name="search_item">Busca una cançó o artista…</string>
     <string name="speed">Velocitat</string>
-    <string name="back_exit">Clica un altre cop ENRERE per sortir de l\'aplicació</string>
     <string name="now_playing">Reproduint</string>
+    <string name="Loading">Reproductor carregant, prova de nou</string>
 </resources>

@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="explore">Seleccionar canción</string>
-    <string name="clear">Resetear</string>
-    <string name="search">Buscar</string>
     <string name="nothing_playing">Mantén apretado y escoge una canción primero</string>
-    <string name="clear_player">Resetear reproductor</string>
-    <string name="clear_player_message">¿Estás seguro de que quieres resetear todos los valores?</string>
-    <string name="search_item">Busca una canción o artista…</string>
     <string name="speed">Velocidad</string>
-    <string name="back_exit">Clica otra vez ATRÁS para salir de la aplicación</string>
     <string name="now_playing">Reproduciendo</string>
+    <string name="Loading">Reproductor cargando, prueva de nuevo</string>
 </resources>

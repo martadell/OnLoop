@@ -84,28 +84,24 @@ public class MusicListActivity extends AppCompatActivity {
         }
     }
 
-
     public void getSongList() {
         ContentResolver musicResolver = getContentResolver();
         Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, MediaStore.Audio.Media.TITLE);
+
+        Cursor musicCursor = musicResolver.query(musicUri,  null, MediaStore.Audio.Media.IS_MUSIC + " != 0", null, null);
 
             if(musicCursor!=null && musicCursor.moveToFirst()) {
-                //get columns
-                int titleColumn = musicCursor.getColumnIndex
-                        (android.provider.MediaStore.Audio.Media.TITLE);
                 int artistColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.ARTIST);
+                int titleColumn = musicCursor.getColumnIndex
+                        (android.provider.MediaStore.Audio.Media.TITLE);
                 int pathColumn = musicCursor.getColumnIndex
-                        (MediaStore.Audio.Media.DATA);
-                //add songs to list
+                        (android.provider.MediaStore.Audio.Media.DATA);
                 do {
                     String thisTitle = musicCursor.getString(titleColumn);
                     String thisArtist = musicCursor.getString(artistColumn);
                     String thisSongPath = musicCursor.getString(pathColumn);
                     songList.add(new Song(thisTitle, thisArtist, thisSongPath));
-
-                    Log.i("Marta", "titol: " + thisTitle + "\n" + "artista: " + thisArtist + "\n" + "path: " + thisSongPath);
 
                 }
                 while (musicCursor.moveToNext());
