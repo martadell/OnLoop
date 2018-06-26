@@ -39,7 +39,7 @@
 
     <Button
         android:id="@+id/viewSongInfo"
-        android:layout_width="600dp"
+        android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/txt_speed_value"

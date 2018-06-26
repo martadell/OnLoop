@@ -260,11 +260,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
                     musicSrv.setSongParams(songname, songartist, urisong);
 
-                    if (musicSrv.isPlaying()) {
-                        musicSrv.pausePlayer();
-                        musicSrv.seekTo(0);
-                    }
-
                     setSongSeekBarListeners();
                     setLoopSeekBarListeners();
 
@@ -283,7 +278,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                         duration = musicSrv.getDuration();
                         txt_loop_end.setText(generateMinutesandSeconds(duration));
                         songSeekBar.setMax(duration);
-                        songSeekBar.setProgress(0);
+                        musicSrv.seekTo(0);
                         musicSrv.setStartPoint(0);
                         musicSrv.setEndPoint(duration);
                         loopSeekBar.setMinStartValue(0).setMaxStartValue(duration).apply();
